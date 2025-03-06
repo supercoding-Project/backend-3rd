@@ -31,7 +31,7 @@ jobs:
                   HOST: ${{ secrets.EC2_HOST }}
                   USER: ${{ secrets.EC2_USER }}
               run: |
-                  ssh -O StrictHostKeyChecking=no -i $PRIVATE_KEY $USER@$HOST << 'EOF'
+                  ssh -o StrictHostKeyChecking=no -i $PRIVATE_KEY $USER@$HOST << 'EOF'
                   pkill -f "java -jar"
                   cd /home/$USER/spring/backend-3rd
                   cp /path/to/github/actions/build/libs/*.jar .
