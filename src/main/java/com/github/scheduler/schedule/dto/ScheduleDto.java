@@ -6,13 +6,13 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 public class ScheduleDto {
 
     private Long scheduleId;
-    private Long createUserId;
-    private Long creatorId; // 팀 공유 캘린더에서 다른 사용자가 작성한 일정 작성자의 ID
+    private Long createUserId; // 팀 공유 캘린더에서 일정을 등록한 사용자
     private String title;
     private LocalDateTime startTime;
     private LocalDateTime endTime;

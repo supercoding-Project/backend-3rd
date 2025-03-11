@@ -39,7 +39,7 @@ public class SchedulerEntity {
     private RepeatType repeatType = RepeatType.NONE;
 
     @Column(name = "repeat_interval", nullable = false)
-    private int repeatInterval = 1; //년 경우 1이면 1년마다 반복, 월 경우 1이면 1달 마다 반복, 주 경우 1이면 매 주 반복
+    private int repeatInterval = 0; //년 경우 1이면 1년마다 반복, 월 경우 1이면 1달 마다 반복, 주 경우 1이면 매 주 반복
 
     @Column(name = "repeat_end_date")
     private LocalDate repeatEndDate;

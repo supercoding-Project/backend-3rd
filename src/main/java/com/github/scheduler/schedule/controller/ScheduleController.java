@@ -42,7 +42,7 @@ public class ScheduleController {
 
     //TODO:일정 수정
     @Operation(summary = "개인 또는 팀 일정 수정")
-    @PutMapping
+    @PutMapping("/{scheduleId}")
     public ResponseEntity<ScheduleDto> updateSchedule(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestBody ScheduleDto scheduleDto){
