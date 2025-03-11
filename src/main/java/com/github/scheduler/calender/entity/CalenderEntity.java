@@ -29,5 +29,5 @@ public class CalenderEntity {
     private UserEntity owner;
 
     @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserCalenderEntity> userCalendars = new ArrayList<>();
+    private List<UserCalenderEntity> userCalendars;
 }
