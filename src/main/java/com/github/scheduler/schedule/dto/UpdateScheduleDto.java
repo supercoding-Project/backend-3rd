@@ -19,5 +19,5 @@ public class UpdateScheduleDto {
     private RepeatScheduleDto repeatSchedule;
     private String location;
     private String memo;
-    private String teamCode; //팀 일정인 경우 팀 코드 입력
+//    private String teamCode; //팀 일정인 경우 팀 코드 입력
 }
