@@ -22,7 +22,7 @@ public class UserCalendarEntity {
 
     @ManyToOne
     @JoinColumn(name = "calendar_id", nullable = false)
-    private CalendarEntity calendarEntity;
+    private CalendarEntity calendar;
 
     @Enumerated(EnumType.STRING)
     private CalendarRole role; // OWNER, MEMBER

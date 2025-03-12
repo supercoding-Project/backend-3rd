@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "calender")
+@Table(name = "calendar")
 public class CalendarEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "calendar_id")
@@ -28,5 +28,5 @@ public class CalendarEntity {
     private UserEntity owner;
 
     @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserCalendarEntity> userCalendars;
+    private List<UserCalendarEntity> userCalendarEntities;
 }
