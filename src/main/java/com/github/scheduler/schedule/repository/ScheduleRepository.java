@@ -9,7 +9,7 @@ import java.util.List;
 public interface ScheduleRepository extends JpaRepository<SchedulerEntity, Long> {
     List<SchedulerEntity> findByStartTimeBetweenAndCreateUserId_UserId(LocalDateTime startTime, LocalDateTime startTime2, Long createUserId);
 
-    List<SchedulerEntity> findByStartTimeBetweenAndCalenderIdIsNotNull(LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<SchedulerEntity> findByStartTimeBetweenAndCalendarIdIsNotNull(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
     List<SchedulerEntity> findByStartTimeBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
 }

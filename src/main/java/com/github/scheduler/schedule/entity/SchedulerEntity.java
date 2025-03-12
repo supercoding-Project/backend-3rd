@@ -1,7 +1,7 @@
 package com.github.scheduler.schedule.entity;
 
 import com.github.scheduler.auth.entity.UserEntity;
-import com.github.scheduler.calender.entity.CalenderEntity;
+import com.github.scheduler.calendar.entity.CalendarEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -53,8 +53,8 @@ public class SchedulerEntity {
     private String memo;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "calender_id")
-    private CalenderEntity calendarId; // 팀 일정이면 값 존재, 개인 일정이면 null
+    @JoinColumn(name = "calendar_id")
+    private CalendarEntity calendarId; // 팀 일정이면 값 존재, 개인 일정이면 null
 
     @Enumerated(EnumType.STRING)
     @Column(name = "schedule_status", nullable = false)
