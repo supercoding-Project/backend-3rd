@@ -1,4 +1,4 @@
-package com.github.scheduler.calender.entity;
+package com.github.scheduler.calendar.entity;
 
 import com.github.scheduler.auth.entity.UserEntity;
 import jakarta.persistence.*;
@@ -10,11 +10,11 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Builder
-@Table(name = "user_calender")
-public class UserCalenderEntity {
+@Table(name = "user_calendar")
+public class UserCalendarEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_calender_id")
-    private Long userCalenderID;
+    @Column(name = "user_calendar_id")
+    private Long userCalendarID;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -22,8 +22,8 @@ public class UserCalenderEntity {
 
     @ManyToOne
     @JoinColumn(name = "calendar_id", nullable = false)
-    private CalenderEntity calenderEntity;
+    private CalendarEntity calendar;
 
     @Enumerated(EnumType.STRING)
-    private CalenderRole role; // OWNER, MEMBER
+    private CalendarRole role; // OWNER, MEMBER
 }
