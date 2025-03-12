@@ -1,4 +1,4 @@
-package com.github.scheduler.calender.entity;
+package com.github.scheduler.calendar.entity;
 
 import com.github.scheduler.auth.entity.UserEntity;
 import jakarta.persistence.*;
@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -16,18 +15,18 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "calender")
-public class CalenderEntity {
+public class CalendarEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "calender_id")
-    private Long calenderId;
+    @Column(name = "calendar_id")
+    private Long calendarId;
 
-    @Column(name = "calender_name")
-    private String calenderName;
+    @Column(name = "calendar_name")
+    private String calendarName;
 
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
     private UserEntity owner;
 
     @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserCalenderEntity> userCalendars;
+    private List<UserCalendarEntity> userCalendars;
 }
