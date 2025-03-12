@@ -18,6 +18,11 @@ public class ChatRoom {
     @Column(name = "name")
     private String name; //채팅방 이름
 
-    
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "calender_id" , nullable = false)
+    private CalenderEntity calendar;
 
+    @Column(name = "created_at", updatable = false, insertable = false)
+    private LocalDateTime createdAt;
+    
 }
