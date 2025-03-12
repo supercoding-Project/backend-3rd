@@ -25,9 +25,9 @@ public class SchedulerAlarmEntity {
     @JoinColumn(name = "calendar_id", nullable = false)
     private CalendarEntity calendar;
 
-    @ManyToOne
-    @JoinColumn(name = "schedule_id", nullable = false)
-    private ScheduleEntity schedule;
+//    @ManyToOne
+//    @JoinColumn(name = "schedule_id", nullable = false)
+//    private ScheduleEntity schedule;
 
     @Column(name = "is_checked", nullable = false)
     private boolean isChecked = false;
