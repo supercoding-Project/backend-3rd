@@ -35,6 +35,7 @@ public class ScheduleService {
     //일정 조회(monthly,weekly,daily)
     @Transactional
     public List<ScheduleDto> getSchedules(CustomUserDetails customUserDetails, String view, String date, String scheduleType) {
+
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage());
         }
@@ -45,12 +46,9 @@ public class ScheduleService {
     //일정 등록
     @Transactional
     public List<CreateScheduleDto> createSchedule(CustomUserDetails customUserDetails, CreateScheduleDto createScheduleDto) {
-        if (customUserDetails == null) {
-            throw new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage());
-        }
-    }
 
     }
+
 
     //TODO:일정 수정
     @Transactional
