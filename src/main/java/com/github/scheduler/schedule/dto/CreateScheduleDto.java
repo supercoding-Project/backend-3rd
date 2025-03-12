@@ -18,6 +18,6 @@ public class CreateScheduleDto {
     private Integer repeatInterval;
     private LocalDate repeatEndDate;
     private String location;
-    private String memo;
-    private String calenderId; // 팀 일정인 경우 체크박스로 선택 → 팀 코드 입력 (개인 일정이면 null)
+    private String todoList ;
+    private String calendarId; // 팀 일정인 경우 체크박스로 선택 → 팀 코드 입력 (개인 일정이면 null)
 }

@@ -46,7 +46,9 @@ public class ScheduleService {
     //일정 등록
     @Transactional
     public List<CreateScheduleDto> createSchedule(CustomUserDetails customUserDetails, CreateScheduleDto createScheduleDto) {
-
+        if (customUserDetails == null) {
+            throw new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage());
+        }
     }
 
 
