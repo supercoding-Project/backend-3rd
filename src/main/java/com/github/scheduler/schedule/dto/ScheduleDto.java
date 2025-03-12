@@ -11,18 +11,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ScheduleDto {
 
-    private Long scheduleId;
+    private Long scheduleId; // 일정 Id
     private Long createUserId; // 팀 공유 캘린더에서 일정을 등록한 사용자
-    private String title;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private String title; // 일정 제목
+    private LocalDateTime startTime; //일정 시작 시간
+    private LocalDateTime endTime; // 일정 종료 시간
     private RepeatScheduleDto repeatSchedule; //일정 반복 설정
-    private String location;
-    private String memo;
-    private String teamCode; //TeamCode = null -> personalSchedule
-    private Long chatRoomId; //채팅방 이동
+    private String location; // 일정 장소
+    private String memo; // 메모
+    private String calendarId; // calendarId = null -> 개인일정, (캘린더 = 팀)
     private String status; //일정 상태
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
 }

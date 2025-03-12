@@ -1,5 +1,7 @@
 package com.github.scheduler.schedule.entity;
 
+import com.github.scheduler.auth.entity.UserEntity;
+import com.github.scheduler.calender.entity.CalenderEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -22,8 +24,9 @@ public class SchedulerEntity {
     @Column(name = "schedule_id")
     private Long scheduleId;
 
-    @Column(name = "create_user_id", nullable = false)
-    private Long createUserId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "create_user_id", nullable = false)
+    private UserEntity createUserId;
 
     @Column(nullable = false)
     private String title;
@@ -49,15 +52,13 @@ public class SchedulerEntity {
     @Column(columnDefinition = "TEXT")
     private String memo;
 
-    @Column(name = "team_code", length = 50)
-    private String teamCode; // 팀 일정이면 값 존재, 개인 일정이면 null
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "calender_id")
+    private CalenderEntity calendarId; // 팀 일정이면 값 존재, 개인 일정이면 null
 
     @Enumerated(EnumType.STRING)
     @Column(name = "schedule_status", nullable = false)
     private ScheduleStatus scheduleStatus = ScheduleStatus.SCHEDULED;
-
-    @Column(name = "chat_room_id")
-    private Long chatRoomId;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
