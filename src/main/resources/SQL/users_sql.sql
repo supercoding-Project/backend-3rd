@@ -28,15 +28,15 @@ create table refresh_token(
 );
 
 CREATE TABLE calendar (
-                          calender_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                          name VARCHAR(255) NOT NULL,
+                          calendar_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                          calendar_name VARCHAR(255) NOT NULL,
                           owner_id BIGINT NOT NULL, -- 캘린더 생성자
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE user_calendar (
-                               user_calender_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                               user_calendar_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                                user_id BIGINT NOT NULL,
                                calendar_id BIGINT NOT NULL,
                                role VARCHAR(20) NOT NULL,

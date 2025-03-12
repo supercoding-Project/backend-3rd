@@ -1,4 +1,4 @@
-package com.github.scheduler.calender.service;
+package com.github.scheduler.calendar.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CalenderService {
+public class CalendarService {
 
     // TODO: 캘린더 추가하기
 
