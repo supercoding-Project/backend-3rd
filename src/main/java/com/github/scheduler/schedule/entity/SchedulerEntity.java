@@ -53,7 +53,7 @@ public class SchedulerEntity {
     private String memo;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "calender_id")
+    @JoinColumn(name = "calendar_id")
     private CalendarEntity calendarId; // 팀 일정이면 값 존재, 개인 일정이면 null
 
     @Enumerated(EnumType.STRING)
