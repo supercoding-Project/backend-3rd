@@ -9,10 +9,10 @@ CREATE TABLE schedules (
                            repeat_end_date DATE,
                            location VARCHAR(255),
                            memo TEXT,
-                           calender_id VARCHAR(50),  -- team_code가 NULL이면 개인 일정, 값이 있으면 팀(공유) 일정
+                           calendar_id BIGINT,  -- team_code가 NULL이면 개인 일정, 값이 있으면 팀(공유) 일정
                            schedule_status ENUM('SCHEDULED', 'COMPLETED', 'CANCELLED') DEFAULT 'SCHEDULED',
                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                            FOREIGN KEY (create_user_id) REFERENCES users(user_id),
-                           FOREIGN KEY (calender_id) REFERENCES calendar(calender_id)
+                           FOREIGN KEY (calendar_id) REFERENCES calendar(calendar_id)
 );

@@ -24,6 +24,9 @@ public enum ErrorCode {
     NOT_AUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자 입니다."),
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자 정보가 존재하지 않습니다."),
     UNTITLED(HttpStatus.BAD_REQUEST,"일정 제목은 필수 입력 사항 입니다."),
+    DATE_FORMAT_INCORRECT(HttpStatus.BAD_REQUEST, "올바른 날짜 형식이 아닙니다."),
+    NOT_OBTAIN_LOCK(HttpStatus.CONFLICT,"일정 수정 락을 획득하지 못했습니다."),
+
 
     // MyPage 에러코드
     NOT_FOUND_USERINFO(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),

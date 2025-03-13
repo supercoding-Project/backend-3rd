@@ -18,7 +18,7 @@ public class ScheduleDto {
     private LocalDateTime endTime; // 일정 종료 시간
     private RepeatScheduleDto repeatSchedule; //일정 반복 설정
     private String location; // 일정 장소
-    private String memo; // 메모
+    private String todoList; // 메모
     private String calendarId; // calendarId = null -> 개인일정, (캘린더 = 팀)
     private String status; //일정 상태
 

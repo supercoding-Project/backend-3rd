@@ -13,14 +13,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateScheduleDto {
-    private Long createUserId;
     private String title;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private RepeatScheduleDto repeatSchedule;
-    private Integer repeatInterval;
-    private LocalDate repeatEndDate;
     private String location;
-    private String memo;
+    private String todoList;
     private String calendarId;
 }
