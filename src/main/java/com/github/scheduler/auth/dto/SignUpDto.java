@@ -21,9 +21,6 @@ public class SignUpDto {
     @Pattern(regexp = "^[ㄱ-ㅎ가-힣a-z0-9-_]{2,8}$", message = "닉네임은 특수문자를 제외한 4~8글자여야 합니다.")
     private String username;
 
-    @NotBlank(message = "주소를 입력하세요.")
-    private String address;
-
     @NotBlank(message = "전화번호를 입력하세요.")
     @Pattern(regexp = "^\\d{2,3}-\\d{3,4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다.")
     private String phone;
