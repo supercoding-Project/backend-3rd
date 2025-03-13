@@ -1,7 +1,10 @@
 package com.github.scheduler.chat.entity;
 
+import com.github.scheduler.calendar.entity.CalendarEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -20,7 +23,7 @@ public class ChatRoom {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calender_id" , nullable = false)
-    private CalenderEntity calendar;
+    private CalendarEntity calendar;
 
     @Column(name = "created_at", updatable = false, insertable = false)
     private LocalDateTime createdAt;

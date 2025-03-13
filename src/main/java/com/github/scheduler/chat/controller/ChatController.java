@@ -1,5 +1,12 @@
 package com.github.scheduler.chat.controller;
 
+import com.github.scheduler.chat.entity.ChatRoom;
+import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
+import com.github.scheduler.global.dto.ApiResponse;
+import com.github.scheduler.global.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,11 +25,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequiredArgsConstructor
 public class ChatController {
     // TODO : 채팅방 생성
+    @Operation(summary = "채팅방 생성")
     @PostMapping("/rooms")
-    public ResponseEntity<?> createRoom(@RequestBody String entity) {
+    public ResponseEntity<ApiResponse<ChatRoom>> createRoom(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestBody String entity) {
         //TODO
-        
-        return ResponseEntity.ok(entity);
+        if (customUserDetails == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.fail(ErrorCode.NOT_FOUND_USER));
+        }
+        ChatRoom chatRoom = new ChatRoom();
+        return ResponseEntity.ok(ApiResponse.success(chatRoom));
     }
     
     // TODO : 채팅방 입장
