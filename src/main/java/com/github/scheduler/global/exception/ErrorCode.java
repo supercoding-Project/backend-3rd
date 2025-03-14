@@ -25,7 +25,7 @@ public enum ErrorCode {
     //calendar 에러코드
     INVALID_CALENDAR_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 캘린더 타입입니다."),
     CALENDAR_NAME_DUPLICATED(HttpStatus.CONFLICT, "이미 존재하는 캘린더 이름입니다."),
-
+    NOT_FOUND_CALENDAR(HttpStatus.NOT_FOUND,"캘린더를 찾을 수 없습니다."),
     //schedule 에러코드
     NOT_AUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자 입니다."),
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자 정보가 존재하지 않습니다."),
