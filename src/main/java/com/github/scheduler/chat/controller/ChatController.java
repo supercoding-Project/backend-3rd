@@ -1,5 +1,6 @@
 package com.github.scheduler.chat.controller;
 
+import com.github.scheduler.chat.dto.ChatRoomCreate;
 import com.github.scheduler.chat.entity.ChatRoom;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
@@ -29,7 +30,7 @@ public class ChatController {
     @PostMapping("/rooms")
     public ResponseEntity<ApiResponse<ChatRoom>> createRoom(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @RequestBody String entity) {
+            @RequestBody ChatRoomCreate roomCreate) {
         //TODO
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
