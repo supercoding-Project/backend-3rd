@@ -59,8 +59,14 @@ dependencies {
 
 	//junit test
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// oauth2
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+bootJar{
+	mainClass = 'com.github.scheduler.SchedulerApplication'
 }

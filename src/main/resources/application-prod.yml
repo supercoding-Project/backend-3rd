@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: jdbc:mariadb://supercoding-1.cvksiw0qqv0f.ap-northeast-2.rds.amazonaws.com:3306/super_scheduler
+    username: ${PROD_USERNAME}
+    password: ${PROD_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+
+logging:
+  config: classpath:logback-spring-prod.xml
