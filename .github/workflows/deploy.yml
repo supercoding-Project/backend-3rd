@@ -36,7 +36,6 @@ jobs:
               run: |
                   echo "$PRIVATE_KEY" > private_key.pem
                   chmod 600 private_key.pem
-#                  scp -o StrictHostKeyChecking=no -i private_key.pem build/libs/*.jar $USER@$HOST:/home/$USER/spring/backend-3rd/
                   ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << 'EOF'
                   pkill -f "java -jar"
                   cd /home/$USER/spring/backend-3rd
