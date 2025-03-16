@@ -40,7 +40,7 @@ jobs:
                   ssh -o StrictHostKeyChecking=no -i private_key.pem $USER@$HOST << 'EOF'
                   pkill -f "java -jar"
                   cd /home/$USER/spring/backend-3rd
-                  nohup java -jar *.jar > app.log 2>&1 &
+                  nohup java -jar *.jar --spring.profiles.active=prod >> app.log 2>&1 &
                   EOF
 
             - name: Deployment Compleate
