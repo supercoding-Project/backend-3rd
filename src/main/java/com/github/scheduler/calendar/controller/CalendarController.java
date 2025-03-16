@@ -6,6 +6,7 @@ import com.github.scheduler.calendar.service.CalendarService;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.ErrorCode;
+import com.github.scheduler.invite.dto.InviteRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,5 +49,18 @@ public class CalendarController {
         }
 
         return ResponseEntity.ok(ApiResponse.success(calendarService.createCalendar(calendarRequestDto, email)));
+    }
+
+    @Operation(summary = "초대 코드 이메일 전송", description = "여러 명에게 초대 코드를 이메일로 전송")
+    @PostMapping("/v1/calendars/{calendarId}/send-invite")
+    public ResponseEntity<ApiResponse<String>> sendInviteCodesByEmail(
+            @PathVariable Long calendarId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestBody InviteRequestDto inviteRequestDto) {
+
+        String ownerEmail = customUserDetails.getUsername();
+        log.info("POST /v1/calendars/{}/send-invite - {}가 {}명에게 초대 코드 전송 요청", calendarId, ownerEmail, inviteRequestDto.getEmailList().size());
+
+        return ResponseEntity.ok(calendarService.sendInviteCodesByEmail(calendarId, ownerEmail, inviteRequestDto.getEmailList()));
     }
 }

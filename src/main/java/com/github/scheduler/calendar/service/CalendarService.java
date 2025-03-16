@@ -10,13 +10,17 @@ import com.github.scheduler.calendar.entity.CalendarType;
 import com.github.scheduler.calendar.entity.UserCalendarEntity;
 import com.github.scheduler.calendar.repository.CalendarRepository;
 import com.github.scheduler.calendar.repository.UserCalendarRepository;
+import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
+import com.github.scheduler.invite.service.EmailService;
+import com.github.scheduler.invite.service.InviteCodeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -26,6 +30,8 @@ public class CalendarService {
     private final UserRepository userRepository;
     private final CalendarRepository calendarRepository;
     private final UserCalendarRepository userCalendarRepository;
+    private final InviteCodeService inviteCodeService;
+    private final EmailService emailService;
 
     // 캘린더 생성
     @Transactional
@@ -78,6 +84,22 @@ public class CalendarService {
                 .calendarRole(userCalendarEntity.getRole().getType())
                 .createdAt(calendarEntity.getCreatedAt())
                 .build();
+    }
+
+    // 이메일로 초대코드 보내기
+    @Transactional
+    public ApiResponse<String> sendInviteCodesByEmail(Long calendarId, String ownerEmail, List<String> recipientEmails) {
+        // 초대 코드 생성 (또는 기존 코드 조회)
+        String inviteCode = inviteCodeService.getInviteCode(calendarId);
+        if (inviteCode == null) {
+            inviteCode = inviteCodeService.generateAndSaveInviteCode(calendarId);
+        }
+
+        // 이메일 전송
+        emailService.sendInviteEmails(recipientEmails, inviteCode, calendarId);
+
+        log.info("초대 코드 {}가 {}명에게 이메일로 전송됨", inviteCode, recipientEmails.size());
+        return ApiResponse.success("초대 코드가 이메일로 전송되었습니다.");
     }
 
     // TODO: 캘린더에 멤버 초대하기
