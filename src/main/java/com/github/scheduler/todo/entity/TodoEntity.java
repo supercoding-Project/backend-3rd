@@ -26,27 +26,28 @@ public class TodoEntity {
     private Long todoId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "create_user_id")
+    @JoinColumn(name = "create_user_id", nullable = false)
     private UserEntity createUser;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id")
-    private ScheduleEntity scheduleEntity;
+    @JoinColumn(name = "schedule_id", nullable = false)
+    private ScheduleEntity schedule;
 
-    @Column(name = "todo_content")
-    private String todoContent; //할 일
+    @Column(name = "todo_content", nullable = false)
+    private String todoContent; // 할 일 내용
 
-    @Column(name = "todo_date")
-    private LocalDate todoDate;
+    @Column(name = "todo_date", nullable = false)
+    private LocalDate todoDate; // 할 일 기한 (날짜만)
 
-    private String memo;
+    @Column(name = "memo")
+    private String memo; // 할 일 메모
 
     @Enumerated(EnumType.STRING)
     @Column(name = "repeat_type", nullable = false)
     private RepeatType repeatType;
 
     @Column(name = "repeat_interval", nullable = false)
-    private int repeatInterval; //년 경우 1이면 1년마다 반복, 월 경우 1이면 1달 마다 반복, 주 경우 1이면 매 주 반복
+    private int repeatInterval; // 반복 간격
 
     @Column(name = "repeat_end_date")
     private LocalDate repeatEndDate;
@@ -55,7 +56,8 @@ public class TodoEntity {
     @JoinColumn(name = "calendar_id")
     private CalendarEntity calendarId;
 
-    private Boolean completed; //완료 여부
+    @Column(name = "completed")
+    private Boolean completed; // 완료 여부
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

@@ -45,7 +45,7 @@ public class TodoController {
         List<TodoResponseDto> todoResponse = todoService.getTodo(customUserDetails, view, date, calendarType);
         return ResponseEntity.ok(ApiResponse.success(todoResponse));
     }
-//
+
 //    // 할 일 등록
 //    @Operation(summary = "할 일 등록", description = "새로운 할 일을 등록합니다.")
 //    @PostMapping
