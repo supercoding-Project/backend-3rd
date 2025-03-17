@@ -23,7 +23,7 @@ public class UserCalendarEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calendar_id", nullable = false)
-    private CalendarEntity calendar;
+    private CalendarEntity calendarEntity;
 
     @Column(name = "role")
     private CalendarRole role; // OWNER, MEMBER
