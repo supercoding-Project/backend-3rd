@@ -14,13 +14,15 @@ public class SocketIOConfig {
     private final SocketProperties socketProperties;
 
     @Bean
-    public SocketIOServer socketIOServer() {
+    public SocketIOServer socketIOServer(SocketSecurityInterceptor socketSecurityInterceptor) {
         Configuration config = new Configuration();
         config.setHostname(socketProperties.getHost());
         config.setPort(socketProperties.getPort());
         config.setAuthorizationListener(data -> true);
         config.setOrigin("*");
 
-        return new SocketIOServer(config);
+        SocketIOServer server = new SocketIOServer(config);
+        server.addConnectListener(socketSecurityInterceptor);
+        return server;
     }
 }
