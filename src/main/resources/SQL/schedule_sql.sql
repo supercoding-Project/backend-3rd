@@ -9,7 +9,7 @@ CREATE TABLE schedules (
                            repeat_end_date DATE,
                            location VARCHAR(255),
                            memo TEXT,
-                           calendar_id BIGINT,  -- team_code가 NULL이면 개인 일정, 값이 있으면 팀(공유) 일정
+                           calendar_id BIGINT,
                            schedule_status ENUM('SCHEDULED', 'COMPLETED', 'CANCELLED') DEFAULT 'SCHEDULED',
                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -1,6 +1,6 @@
 package com.github.scheduler.schedule.repository;
 
-import com.github.scheduler.schedule.entity.SchedulerEntity;
+import com.github.scheduler.schedule.entity.ScheduleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -8,12 +8,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface ScheduleRepository extends JpaRepository<SchedulerEntity, Long> {
-    List<SchedulerEntity> findByStartTimeBetweenAndCreateUserId_UserId(LocalDateTime startTime, LocalDateTime startTime2, Long createUserId);
+public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> {
+    List<ScheduleEntity> findByCreateUserIdUserIdAndStartTimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
 
-    List<SchedulerEntity> findByStartTimeBetweenAndCalendarIdIsNotNull(LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<ScheduleEntity> findByCalendarIdIsNotNullAndStartTimeBetweenAndCreateUserId_UserId(LocalDateTime start, LocalDateTime end, Long userId);
 
-    List<SchedulerEntity> findByStartTimeBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
-
-    List<SchedulerEntity> findByCalendarIdInAndStartTimeBetween(List<Long> calendarIds, LocalDateTime startDateTime, LocalDateTime endDateTime);
 }

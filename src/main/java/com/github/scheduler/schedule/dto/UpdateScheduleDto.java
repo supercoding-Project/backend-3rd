@@ -1,9 +1,6 @@
 package com.github.scheduler.schedule.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,11 +10,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateScheduleDto {
+    private Long createUserId;
     private String title;
+    private String location;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private RepeatScheduleDto repeatSchedule;
-    private String location;
-    private String todoList;
-    private String calendarId;
+    private String memo;
+    private Long calendarId;
 }

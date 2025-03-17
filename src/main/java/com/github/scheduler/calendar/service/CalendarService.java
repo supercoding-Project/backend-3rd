@@ -65,7 +65,7 @@ public class CalendarService {
         // UserCalendarEntity에 OWNER로 추가
         UserCalendarEntity userCalendarEntity = UserCalendarEntity.builder()
                 .userEntity(userEntity)
-                .calendar(calendarEntity)
+                . calendar(calendarEntity)
                 .role(CalendarRole.OWNER)
                 .joinedAt(now)
                 .build();

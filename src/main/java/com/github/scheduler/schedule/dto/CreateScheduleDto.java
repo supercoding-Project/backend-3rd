@@ -1,5 +1,6 @@
 package com.github.scheduler.schedule.dto;
 
+import com.github.scheduler.schedule.entity.ScheduleStatus;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -7,17 +8,16 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateScheduleDto {
     private Long createUserId;
     private String title;
+    private String location;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private RepeatScheduleDto repeatSchedule;
-    private Integer repeatInterval;
-    private LocalDate repeatEndDate;
-    private String location;
-    private String todoList ;
-    private String calendarId; // 팀 일정인 경우 체크박스로 선택 → 팀 코드 입력 (개인 일정이면 null)
+    private String memo;
+    private Long calendarId;
 }
