@@ -1,20 +1,24 @@
 package com.github.scheduler.chat.service;
 
+import com.corundumstudio.socketio.SocketIOClient;
 import com.github.scheduler.auth.service.UserService;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.repository.CalendarRepository;
 import com.github.scheduler.chat.dto.ChatRoomCreate;
 import com.github.scheduler.chat.dto.ChatRoomDto;
 import com.github.scheduler.chat.entity.ChatRoom;
+import com.github.scheduler.chat.event.ChatRoomCreateEvent;
 import com.github.scheduler.chat.repository.ChatMessageRepository;
 import com.github.scheduler.chat.repository.ChatRoomRepository;
 import com.github.scheduler.chat.repository.ChatRoomUserRepository;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -23,8 +27,10 @@ public class ChatService {
     private final ChatRoomUserRepository chatRoomUserRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final CalendarRepository calendarRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public ApiResponse<ChatRoomDto> createRoom(ChatRoomCreate roomCreate) {
+    @Transactional
+    public ApiResponse<ChatRoomDto> createRoom(ChatRoomCreate roomCreate, SocketIOClient client) {
         // 채팅방 생성
         // get calendar entity
         CalendarEntity calendar = calendarRepository.findById(roomCreate.getCalendarId())
@@ -41,6 +47,9 @@ public class ChatService {
                 .calendarId(savedRoom.getCalendar().getCalendarId())
                 .createdAt(savedRoom.getCreatedAt())
                 .build();
+        // 트랜잭션 후 실행할 event 발생
+        eventPublisher.publishEvent(new ChatRoomCreateEvent(chatRoomDto,client));
+
         return ApiResponse.success(chatRoomDto);
     }
 
