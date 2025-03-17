@@ -10,7 +10,6 @@ public enum ErrorCode {
     // Auth 에러코드
     UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "허용되지 않은 사용자입니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러가 발생하였습니다."),
-    NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자 정보가 존재하지 않습니다."),
     USER_EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 가입된 이메일입니다."),
     USER_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "이메일을 찾을 수 없습니다."),
     USERNAME_DUPLICATED(HttpStatus.CONFLICT, "이미 존재하는 닉네임입니다."),
@@ -23,18 +22,13 @@ public enum ErrorCode {
     INCORRECT_REFRESH_TOKEN(HttpStatus.CONFLICT, "Refresh Token 이 일치하지 않습니다."),
     INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다. 다시 로그인 해주세요."),
 
-    // calendar 에러코드
+    //calendar 에러코드
     INVALID_CALENDAR_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 캘린더 타입입니다."),
-    NOT_FOUND_CALENDAR(HttpStatus.NOT_FOUND, "캘린더를 찾을 수 없습니다."),
-    DUPLICATED_CALENDAR(HttpStatus.CONFLICT, "이미 가입된 캘린더입니다."),
-    DUPLICATED_CALENDAR_NAME(HttpStatus.CONFLICT, "이미 존재하는 캘린더 이름입니다."),
-    NOT_SHARED_CALENDAR(HttpStatus.UNAUTHORIZED, "공용 캘린더가 아닙니다."),
+    CALENDAR_NAME_DUPLICATED(HttpStatus.CONFLICT, "이미 존재하는 캘린더 이름입니다."),
 
-    // invite 에러코드
-    INVALID_INVITE_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 초대 코드입니다."),
-
-    // schedule 에러코드
+    //schedule 에러코드
     NOT_AUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자 입니다."),
+    NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자 정보가 존재하지 않습니다."),
     UNTITLED(HttpStatus.BAD_REQUEST,"일정 제목은 필수 입력 사항 입니다."),
 
     // MyPage 에러코드
