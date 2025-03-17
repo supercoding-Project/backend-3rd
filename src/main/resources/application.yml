@@ -9,10 +9,10 @@ spring:
             refresh-expiration-time: 604800000
 
     data:
-      redis:
-          host: localhost
-          port: 6379
-
+        redis:
+            host: localhost
+            port: 6379
+            timeout: 60000  # 연결 타임아웃 (60초)
 
     mail:
         host: smtp.gmail.com
@@ -25,10 +25,3 @@ spring:
                     auth: true
                     starttls:
                         enable: true
-
-logging:
-  level:
-    org.springframework.mail: DEBUG
-    jakarta.mail: DEBUG
-    javax.mail: DEBUG
-
