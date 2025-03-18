@@ -52,34 +52,33 @@ public class ScheduleController {
     }
 
     // 일정 등록
-    @Operation(summary = "개인 또는 팀 일정 등록", description = "개인 또는 팀 일정을 등록합니다.")
+    @Operation(summary = "일정 등록", description = "캘린더 타입을 선택하여 개인 또는 팀 일정을 등록합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<List<CreateScheduleDto>>> createSchedule(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody CreateScheduleDto createScheduleDto,
-            @RequestParam(name = "calendarType", defaultValue = "PERSONAL") CalendarType calendarType,
-            @RequestParam(name = "calendarId") Long calendarId) {
+            @RequestParam(name = "calendarType", defaultValue = "PERSONAL") CalendarType calendarType) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
-        List<CreateScheduleDto> createdSchedule = scheduleService.createSchedule(customUserDetails, createScheduleDto, calendarType, calendarId);
+        List<CreateScheduleDto> createdSchedule = scheduleService.createSchedule(customUserDetails, createScheduleDto, calendarType);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdSchedule));
     }
 
     // 일정 수정 (개인 또는 팀 일정 수정)
     @Operation(summary = "일정 수정", description = "개인 또는 팀 일정을 수정합니다.")
     @PutMapping("/{scheduleId}")
-    public ResponseEntity<ApiResponse<List<CreateScheduleDto>>> updateSchedule(
+    public ResponseEntity<ApiResponse<List<UpdateScheduleDto>>> updateSchedule(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Valid @RequestBody CreateScheduleDto updateScheduleDto,
-            @PathVariable Long scheduleId,
-            @RequestParam(name = "calendarType", defaultValue = "SHARED") CalendarType calendarType) {
+            @Valid @RequestBody UpdateScheduleDto updateScheduleDto,
+            @PathVariable("scheduleId") Long scheduleId,
+            @RequestParam(name = "calendarType", defaultValue = "PERSONAL") CalendarType calendarType) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
-        List<CreateScheduleDto> updatedSchedules = scheduleService.updateSchedule(customUserDetails, updateScheduleDto, scheduleId, calendarType);
+        List<UpdateScheduleDto> updatedSchedules = scheduleService.updateSchedule(customUserDetails, updateScheduleDto, scheduleId, calendarType);
         return ResponseEntity.ok(ApiResponse.success(updatedSchedules));
     }
 

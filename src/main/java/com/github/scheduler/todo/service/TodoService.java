@@ -87,7 +87,7 @@ public class TodoService {
 
     }
 
-    //할 일 등록
+    //할 일 등록(수정 필요)
     @Transactional
     public List<TodoCreateDto> createTodo(CustomUserDetails customUserDetails, TodoCreateDto todoCreateDto,
                                           CalendarType calendarType, Long calendarId) {
@@ -140,7 +140,7 @@ public class TodoService {
         );
     }
 
-    //할 일 수정
+    //할 일 수정(수정 필요)
     @Transactional
     public List<TodoUpdateDto> updateTodo(CustomUserDetails customUserDetails, TodoUpdateDto todoUpdateDto,
                                           Long todoId, CalendarType calendarType){
@@ -215,7 +215,7 @@ public class TodoService {
         }
     }
 
-    //할 일 삭제
+    //할 일 삭제(수정 필요)
     @Transactional
     public TodoDeleteDto deleteTodo(CustomUserDetails customUserDetails, Long todoId, CalendarType calendarType) {
         if (customUserDetails == null) {
@@ -228,10 +228,13 @@ public class TodoService {
             if (!acquired) {
                 throw new AppException(ErrorCode.NOT_OBTAIN_LOCK, ErrorCode.NOT_OBTAIN_LOCK.getMessage());
             }
+
             TodoEntity todoEntity = todoRepository.findById(todoId)
                     .orElseThrow(() -> new AppException(ErrorCode.TODO_NOT_FOUND, ErrorCode.TODO_NOT_FOUND.getMessage()));
+
             Long currentUserId = customUserDetails.getUserEntity().getUserId();
             boolean canDelete = false;
+
             CalendarEntity calendarEntity = todoEntity.getCalendar();
             //스캐쥴 타입 확인
             if (calendarEntity.getCalendarType().equals(CalendarType.PERSONAL)) {
@@ -246,11 +249,13 @@ public class TodoService {
             if (!canDelete) {
                 throw new AppException(ErrorCode.UNAUTHORIZED_ACCESS, ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
             }
+
             todoRepository.delete(todoEntity);
             return TodoDeleteDto.builder()
                     .todoId(todoId)
                     .message("할 일이 성공적으로 삭제되었습니다.")
                     .build();
+
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new AppException(ErrorCode.NOT_OBTAIN_LOCK, ErrorCode.NOT_OBTAIN_LOCK.getMessage());

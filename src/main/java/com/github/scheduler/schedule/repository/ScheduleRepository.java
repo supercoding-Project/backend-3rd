@@ -11,6 +11,6 @@ import java.util.List;
 public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> {
     List<ScheduleEntity> findByCreateUserIdUserIdAndStartTimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
 
-    List<ScheduleEntity> findByCalendarIdIsNotNullAndStartTimeBetweenAndCreateUserId_UserId(LocalDateTime start, LocalDateTime end, Long userId);
+    List<ScheduleEntity> findByCalendarIsNotNullAndStartTimeBetweenAndCreateUserId_UserId(LocalDateTime start, LocalDateTime end, Long userId);
 
 }

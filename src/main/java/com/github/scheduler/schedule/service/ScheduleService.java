@@ -80,11 +80,11 @@ public class ScheduleService {
                     result.add(convertScheduleEntityToDto(schedule));
                 }
             } else if (type == CalendarType.SHARED) {
-                List<ScheduleEntity> sharedSchedules = scheduleRepository.findByCalendarIdIsNotNullAndStartTimeBetweenAndCreateUserId_UserId(startDateTime, endDateTime, userId);
+                List<ScheduleEntity> sharedSchedules = scheduleRepository.findByCalendarIsNotNullAndStartTimeBetweenAndCreateUserId_UserId(startDateTime, endDateTime, userId);
                 for (ScheduleEntity schedule : sharedSchedules) {
                     ScheduleDto dto = convertScheduleEntityToDto(schedule);
-                    if (schedule.getCalendarId() != null) {
-                        List<UserCalendarEntity> sharedUsers = userCalendarRepository.findByCalendarEntityCalendarId(schedule.getCalendarId().getCalendarId());
+                    if (schedule.getCalendar() != null) {
+                        List<UserCalendarEntity> sharedUsers = userCalendarRepository.findByCalendarEntityCalendarId(schedule.getCalendar().getCalendarId());
                         dto.setSharedUsers(sharedUsers);
                     }
                     result.add(dto);
@@ -96,7 +96,7 @@ public class ScheduleService {
         return result;
     }
 
-    // ScheduleEntity -> ScheduleDto 변환 메서드
+    // ScheduleEntity -> ScheduleDto
     private ScheduleDto convertScheduleEntityToDto(ScheduleEntity entity) {
         RepeatScheduleDto repeatScheduleDto = RepeatScheduleDto.builder()
                 .repeatType(String.valueOf(entity.getRepeatType()))
@@ -113,16 +113,14 @@ public class ScheduleService {
                 .repeatSchedule(repeatScheduleDto)
                 .location(entity.getLocation())
                 .memo(entity.getMemo())
-                .calendarId(entity.getCalendarId() != null ? entity.getCalendarId().getCalendarId().toString() : null)
+                .calendarId(entity.getCalendar() != null ? entity.getCalendar().getCalendarId().toString() : null)
                 .status(entity.getScheduleStatus().getScheduleStatus())
                 .build();
     }
 
-
     //일정 등록
     @Transactional
-    public List<CreateScheduleDto> createSchedule(CustomUserDetails customUserDetails, CreateScheduleDto createScheduleDto,
-                                                  CalendarType calendarType, Long calendarId) {
+    public List<CreateScheduleDto> createSchedule(CustomUserDetails customUserDetails, CreateScheduleDto createScheduleDto, CalendarType calendarType) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage());
@@ -143,16 +141,11 @@ public class ScheduleService {
         ScheduleEntity scheduleEntity;
 
         if(calendarType == CalendarType.PERSONAL){
-
-            // 개인 일정 등록: 캘린더 ID가 제공되지 않으면 사용자의 기본 개인 캘린더 조회
+            // 개인 일정 등록
             CalendarEntity personalCalendar;
-            if (calendarId == null) {
-                personalCalendar = calendarRepository.findPersonalCalendarByOwnerUserId(customUserDetails.getUserEntity().getUserId())
-                        .orElseThrow(() -> new AppException(ErrorCode.PERSONAL_CALENDAR_NOT_FOUND,ErrorCode.PERSONAL_CALENDAR_NOT_FOUND.getMessage()));
-            } else {
-                personalCalendar = calendarRepository.findById(calendarId)
-                        .orElseThrow(() -> new AppException(ErrorCode.PERSONAL_CALENDAR_NOT_FOUND,ErrorCode.PERSONAL_CALENDAR_NOT_FOUND.getMessage()));
-            }
+
+                personalCalendar = calendarRepository.findById(createScheduleDto.getCalendarId())
+                        .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_CALENDAR,ErrorCode.NOT_FOUND_CALENDAR.getMessage()));
 
             scheduleEntity = ScheduleEntity.builder()
                     .createUserId(customUserDetails.getUserEntity())
@@ -165,13 +158,16 @@ public class ScheduleService {
                     .repeatEndDate(repeatEndDate)
                     .memo(createScheduleDto.getMemo())
                     .scheduleStatus(ScheduleStatus.SCHEDULED)
-                    .calendarId(personalCalendar)
+                    .calendar(personalCalendar)
                     .build();
 
         }else if(calendarType == CalendarType.SHARED){
+            //공유 일정 등록
+            CalendarEntity sharedCalendar;
 
-            CalendarEntity calendarEntity = calendarRepository.findById(createScheduleDto.getCalendarId())
-                    .orElseThrow(() -> new AppException(ErrorCode.SHARED_CALENDAR_NOT_FOUND,ErrorCode.SHARED_CALENDAR_NOT_FOUND.getMessage()));
+            //캘린더 ID 조회
+            sharedCalendar = calendarRepository.findById(createScheduleDto.getCalendarId())
+                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_CALENDAR,ErrorCode.NOT_FOUND_CALENDAR.getMessage()));
 
             scheduleEntity = ScheduleEntity.builder()
                     .createUserId(customUserDetails.getUserEntity())
@@ -184,11 +180,12 @@ public class ScheduleService {
                     .repeatEndDate(repeatEndDate)
                     .memo(createScheduleDto.getMemo())
                     .scheduleStatus(ScheduleStatus.SCHEDULED)
-                    .calendarId(calendarEntity)  // 공유 혹은 할일 캘린더 연관 설정
+                    .calendar(sharedCalendar)  // 공유 혹은 할일 캘린더 연관 설정
                     .build();
         }else {
             throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE,ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
         }
+
         ScheduleEntity savedScheduleEntity = scheduleRepository.save(scheduleEntity);
         CreateScheduleDto saveCreateScheduleDto = convertScheduleEntityToCreateScheduleDto(savedScheduleEntity);
         return Collections.singletonList(saveCreateScheduleDto);
@@ -214,7 +211,7 @@ public class ScheduleService {
 
     //일정 수정
     @Transactional
-    public List<CreateScheduleDto> updateSchedule(CustomUserDetails customUserDetails, CreateScheduleDto updateScheduleDto,
+    public List<UpdateScheduleDto> updateSchedule(CustomUserDetails customUserDetails, UpdateScheduleDto updateScheduleDto,
                                                   Long scheduleId, CalendarType calendarType) {
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage());
@@ -222,11 +219,13 @@ public class ScheduleService {
 
         RLock lock = redissonClient.getLock("schedule:" + scheduleId);
         boolean acquired = false;
+
         try {
-            acquired = lock.tryLock(5, 5, TimeUnit.SECONDS);
+            acquired = lock.tryLock(5, 10, TimeUnit.SECONDS);
             if (!acquired) {
                 throw new AppException(ErrorCode.NOT_OBTAIN_LOCK, ErrorCode.NOT_OBTAIN_LOCK.getMessage());
             }
+
             ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId)
                     .orElseThrow(() -> new AppException(ErrorCode.SCHEDULE_NOT_FOUND, ErrorCode.SCHEDULE_NOT_FOUND.getMessage()));
 
@@ -234,27 +233,25 @@ public class ScheduleService {
             boolean canUpdate = false;
 
             //캘린더 타입별 조회
-            CalendarEntity calendarEntity = scheduleEntity.getCalendarId();
-            if (calendarEntity != null) {
-                // 전달받은 캘린더 타입과 실제 캘린더의 타입이 일치하는지 확인
-                if (!calendarEntity.getCalendarType().equals(calendarType)) {
-                    throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE, ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
+            CalendarEntity calendarEntity = scheduleEntity.getCalendar();
+            // 전달받은 캘린더 타입과 실제 캘린더의 타입이 일치하는지 확인
+            if (!calendarEntity.getCalendarType().equals(calendarType)) {
+                throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE, ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
+            }
+            if (calendarType.equals(CalendarType.PERSONAL)) {
+                // 개인 캘린더: 작성자만 수정 가능
+                canUpdate = scheduleEntity.getCreateUserId().getUserId().equals(currentUserId);
+            } else if (calendarType.equals(CalendarType.SHARED)) {
+                // 공유 캘린더: 해당 캘린더의 구성원이라면 수정 가능
+                if (userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
+                        calendarEntity.getCalendarId(), currentUserId)) {
+                    canUpdate = true;
                 }
-                if (calendarType.equals(CalendarType.PERSONAL)) {
-                    // 개인 캘린더: 작성자만 수정 가능
-                    canUpdate = scheduleEntity.getCreateUserId().getUserId().equals(currentUserId);
-                } else if (calendarType.equals(CalendarType.SHARED)) {
-                    // 공유 캘린더: 해당 캘린더의 구성원(팀원)이라면 수정 가능
-                    if (userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
-                            calendarEntity.getCalendarId(), currentUserId)) {
-                        canUpdate = true;
-                    }
-                } else {
-                    //다른 타입도 유사하게 조회
-                    if (userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
-                            calendarEntity.getCalendarId(), currentUserId)) {
-                        canUpdate = true;
-                    }
+            } else {
+                //할 일
+                if (userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
+                        calendarEntity.getCalendarId(), currentUserId)) {
+                    canUpdate = true;
                 }
             }
 
@@ -277,7 +274,8 @@ public class ScheduleService {
             }
 
             ScheduleEntity savedScheduleEntity = scheduleRepository.save(scheduleEntity);
-            return Collections.singletonList(convertScheduleEntityToCreateScheduleDto(savedScheduleEntity));
+            return Collections.singletonList(convertScheduleEntityToUpdateScheduleDto(savedScheduleEntity));
+
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new AppException(ErrorCode.NOT_OBTAIN_LOCK, ErrorCode.NOT_OBTAIN_LOCK.getMessage());
@@ -286,6 +284,22 @@ public class ScheduleService {
                 lock.unlock();
             }
         }
+    }
+    private UpdateScheduleDto convertScheduleEntityToUpdateScheduleDto(ScheduleEntity savedEntity) {
+        RepeatScheduleDto repeatScheduleDto = RepeatScheduleDto.builder()
+                .repeatType(savedEntity.getRepeatType().name())
+                .repeatInterval(savedEntity.getRepeatInterval())
+                .repeatEndDate(savedEntity.getRepeatEndDate())
+                .build();
+
+        return UpdateScheduleDto.builder()
+                .title(savedEntity.getTitle())
+                .location(savedEntity.getLocation())
+                .startTime(savedEntity.getStartTime())
+                .endTime(savedEntity.getEndTime())
+                .repeatSchedule(repeatScheduleDto)
+                .memo(savedEntity.getMemo())
+                .build();
     }
 
     //일정 삭제
@@ -298,50 +312,53 @@ public class ScheduleService {
 
         RLock lock = redissonClient.getLock("schedule:" + scheduleId);
         boolean acquired = false;
+
         try {
-            acquired = lock.tryLock(5, 5, TimeUnit.SECONDS);
+            acquired = lock.tryLock(5, 10, TimeUnit.SECONDS);
             if (!acquired) {
                 throw new AppException(ErrorCode.NOT_OBTAIN_LOCK, ErrorCode.NOT_OBTAIN_LOCK.getMessage());
             }
             ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId)
                     .orElseThrow(() -> new AppException(ErrorCode.SCHEDULE_NOT_FOUND, ErrorCode.SCHEDULE_NOT_FOUND.getMessage()));
+
             Long currentUserId = customUserDetails.getUserEntity().getUserId();
             boolean canDelete = false;
 
-            CalendarEntity calendarEntity = scheduleEntity.getCalendarId();
-            if (calendarEntity != null) {
-                // 전달받은 calendarType 과 실제 일정의 캘린더 타입이 일치하는지 확인
-                if (!calendarEntity.getCalendarType().equals(calendarType)) {
-                    throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE, ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
-                }
-                if (calendarType.equals(CalendarType.PERSONAL)) {
-                    // 개인 캘린더: 작성자만 삭제 가능
-                    canDelete = scheduleEntity.getCreateUserId().getUserId().equals(currentUserId);
-                } else if (calendarType.equals(CalendarType.SHARED)) {
-                    // 공유 캘린더: 해당 캘린더의 구성원은 삭제 가능
-                    if (userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
-                            calendarEntity.getCalendarId(), currentUserId)) {
-                        canDelete = true;
-                    }
-                } else {
-                    // 할 일도 공유와 유사하게 처리
-                    if (userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
-                            calendarEntity.getCalendarId(), currentUserId)) {
-                        canDelete = true;
-                    }
+            CalendarEntity calendarEntity = scheduleEntity.getCalendar();
+            // 전달받은 calendarType 과 실제 일정의 캘린더 타입이 일치하는지 확인
+            if (!calendarEntity.getCalendarType().equals(calendarType)) {
+                throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE, ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
+            }
+            if (calendarType.equals(CalendarType.PERSONAL)) {
+                // 개인 캘린더: 작성자만 삭제 가능
+                canDelete = scheduleEntity.getCreateUserId().getUserId().equals(currentUserId);
+            } else if (calendarType.equals(CalendarType.SHARED)) {
+                // 공유 캘린더: 해당 캘린더의 구성원은 삭제 가능
+                if (userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
+                        calendarEntity.getCalendarId(), currentUserId)) {
+                    canDelete = true;
                 }
             } else {
-                // 캘린더 연관 정보가 없는 경우: 작성자만 삭제 가능
-                canDelete = scheduleEntity.getCreateUserId().getUserId().equals(currentUserId);
+                // 할 일도 공유와 유사하게 처리
+                if (userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
+                        calendarEntity.getCalendarId(), currentUserId)) {
+                    canDelete = true;
+                }
             }
 
             if (!canDelete) throw new AppException(ErrorCode.UNAUTHORIZED_ACCESS, ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
 
             scheduleRepository.delete(scheduleEntity);
+
+            String responseMessage = (deleteScheduleDto.getMessage() != null && !deleteScheduleDto.getMessage().isEmpty())
+                    ? deleteScheduleDto.getMessage()
+                    : "일정이 성공적으로 삭제되었습니다.";
+
             return DeleteScheduleDto.builder()
                     .scheduleId(scheduleId)
-                    .message("일정이 성공적으로 삭제되었습니다.")
+                    .message(responseMessage)
                     .build();
+
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new AppException(ErrorCode.NOT_OBTAIN_LOCK, ErrorCode.NOT_OBTAIN_LOCK.getMessage());

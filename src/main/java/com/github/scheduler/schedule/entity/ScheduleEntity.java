@@ -57,7 +57,7 @@ public class ScheduleEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calendar_id")
-    private CalendarEntity calendarId;
+    private CalendarEntity calendar;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "schedule_status", nullable = false)
