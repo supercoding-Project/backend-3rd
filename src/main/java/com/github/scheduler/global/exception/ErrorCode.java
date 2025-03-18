@@ -23,6 +23,7 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다. 다시 로그인 해주세요."),
 
     //calendar 에러코드
+    UNAUTHORIZED_CALENDAR(HttpStatus.UNAUTHORIZED, "내 캘린더가 아닙니다."),
     NOT_FOUND_CALENDAR(HttpStatus.NOT_FOUND, "캘린더를 찾을 수 없습니다."),
     NOT_SHARED_CALENDAR(HttpStatus.BAD_REQUEST, "공용 캘린더가 아닙니다."),
     DUPLICATED_CALENDAR(HttpStatus.CONFLICT, "이미 가입된 캘린더입니다."),
