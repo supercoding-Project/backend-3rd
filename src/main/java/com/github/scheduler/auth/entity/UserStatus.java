@@ -6,7 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum UserStatus {
-    // 유저 상태
     ACTIVE("ACTIVE"),
     DELETED("DELETED");
 

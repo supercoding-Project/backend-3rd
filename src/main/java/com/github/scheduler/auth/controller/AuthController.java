@@ -31,7 +31,6 @@ public class AuthController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
-    // 회원가입
     @Operation(summary = "유저 회원가입", description = "회원가입 api 입니다.")
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<String>> signUp(

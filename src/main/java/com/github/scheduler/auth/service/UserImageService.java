@@ -20,7 +20,6 @@ public class UserImageService {
 
     private final UserImageRepository userImageRepository;
 
-    // 이미지 업로드
     public void uploadUserImage(UserEntity userEntity, MultipartFile image) {
         try {
             // 프로필 이미지 저장 경로
@@ -35,7 +34,6 @@ public class UserImageService {
         }
     }
 
-    // 이미지 파일을 저장하는 메서드
     public String saveImage(MultipartFile image, String uploadsDir) throws IOException {
         // 파일 이름 생성
         String fileName = UUID.randomUUID().toString().replace("-", "") + "_" + image.getOriginalFilename();

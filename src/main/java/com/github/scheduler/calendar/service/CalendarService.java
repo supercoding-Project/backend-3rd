@@ -66,6 +66,7 @@ public class CalendarService {
         CalendarEntity calendarEntity = CalendarEntity.builder()
                 .calendarName(calendarRequestDto.getCalendarName())
                 .owner(userEntity)
+                .calendarDescription(calendarRequestDto.getCalendarDescription())
                 .calendarType(calendarType)
                 .createdAt(now)
                 .build();
@@ -83,6 +84,7 @@ public class CalendarService {
         return CalendarResponseDto.builder()
                 .calendarId(calendarEntity.getCalendarId())
                 .calendarName(calendarEntity.getCalendarName())
+                .calendarDescription(calendarEntity.getCalendarDescription())
                 .calendarType(calendarEntity.getCalendarType().getType())
                 .calendarRole(userCalendarEntity.getRole().getType())
                 .createdAt(calendarEntity.getCreatedAt())
@@ -91,7 +93,7 @@ public class CalendarService {
 
     // 공용 캘린더 초대코드 이메일로 전송
     public ApiResponse<String> sendInviteCodesByEmail(Long calendarId, String ownerEmail, List<String> emailList) {
-        log.info("📩 초대 코드 전송 요청 - 캘린더 ID: {}, 요청자: {}, 대상자 수: {}", calendarId, ownerEmail, emailList.size());
+        log.info("초대 코드 전송 요청 - 캘린더 ID: {}, 요청자: {}, 대상자 수: {}", calendarId, ownerEmail, emailList.size());
 
         // 캘린더 Owner 인지 확인
         CalendarEntity calendar = calendarRepository.findById(calendarId)
@@ -101,7 +103,7 @@ public class CalendarService {
             throw new AppException(ErrorCode.UNAUTHORIZED_CALENDAR, ErrorCode.UNAUTHORIZED_CALENDAR.getMessage());
         }
 
-        log.info("요청자 {}는 캘린더 {}의 소유자입니다.", ownerEmail, calendarId);
+        log.info("{}는 캘린더 {}의 Owner입니다.", ownerEmail, calendarId);
 
         String inviteCode = inviteCodeService.getInviteCode(calendarId);
 
@@ -129,7 +131,7 @@ public class CalendarService {
 
         // 캘린더 조회 (Owner 정보 포함)
         CalendarEntity calendarEntity = calendarRepository.findByCalendarIdWithOwner(calendarId);
-        log.info("캘린더 조회 완료 - 캘린더 ID: {}, 소유자: {}", calendarEntity.getCalendarId(), calendarEntity.getOwner().getEmail());
+        log.info("캘린더 조회 완료 - 캘린더 ID: {}, Owner: {}", calendarEntity.getCalendarId(), calendarEntity.getOwner().getEmail());
 
         if (calendarEntity.getCalendarType() != CalendarType.SHARED) {
             throw new AppException(ErrorCode.NOT_SHARED_CALENDAR, "공용 캘린더가 아닙니다.");

@@ -14,7 +14,6 @@ import java.util.List;
 @Entity
 @Table(name = "calendar")
 public class CalendarEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "calendar_id")
@@ -26,6 +25,9 @@ public class CalendarEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private UserEntity owner;
+
+    @Column(name = "calendar_description")
+    private String calendarDescription;
 
     @Column(name = "calendar_type", nullable = false)
     @Enumerated(EnumType.STRING)
