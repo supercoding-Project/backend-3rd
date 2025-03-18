@@ -19,6 +19,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -80,5 +82,17 @@ public class CalendarController {
         calendarService.joinCalendar(email, inviteCode);
 
         return ResponseEntity.ok(ApiResponse.success("공용 캘린더 가입이 완료되었습니다."));
+    }
+
+    @Operation(summary = "모든 캘린더 조회", description = "로그인한 유저가 사용 중인 캘린더 전체 조회")
+    @GetMapping("/v1/calendars")
+    public ResponseEntity<ApiResponse<List<CalendarResponseDto>>> getCalendarList(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails)
+    {
+        String email = customUserDetails.getUsername();
+
+        List<CalendarResponseDto> calendarResponseDtoList = calendarService.getUserCalendars(email);
+
+        return ResponseEntity.ok(ApiResponse.success(calendarResponseDtoList));
     }
 }

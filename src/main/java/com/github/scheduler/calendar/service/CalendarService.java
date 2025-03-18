@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -92,6 +93,7 @@ public class CalendarService {
     }
 
     // 공용 캘린더 초대코드 이메일로 전송
+    @Transactional
     public ApiResponse<String> sendInviteCodesByEmail(Long calendarId, String ownerEmail, List<String> emailList) {
         log.info("초대 코드 전송 요청 - 캘린더 ID: {}, 요청자: {}, 대상자 수: {}", calendarId, ownerEmail, emailList.size());
 
@@ -119,6 +121,7 @@ public class CalendarService {
         return ApiResponse.success("초대 코드가 이메일로 전송되었습니다.");
     }
 
+    // 이메일로 받은 초대코드로 공용 캘린더에 가입
     @Transactional
     public void joinCalendar(String email, String inviteCode) {
         // Redis 에서 초대 코드 검증 및 calendarId 조회
@@ -150,6 +153,26 @@ public class CalendarService {
         userCalendarRepository.save(userCalendarEntity);
 
         log.info("유저 캘린더 추가 완료 - 사용자: {}, 캘린더 ID: {}", email, calendarEntity.getCalendarId());
+    }
+
+    // 로그인한 유저의 모든 캘린더 조회
+    @Transactional(readOnly = true)
+    public List<CalendarResponseDto> getUserCalendars(String email) {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage()));
+
+        List<UserCalendarEntity> userCalendars = userCalendarRepository.findByUserEntity(userEntity);
+
+        return userCalendars.stream()
+                .map(uc -> new CalendarResponseDto(
+                        uc.getCalendarEntity().getCalendarId(),
+                        uc.getCalendarEntity().getCalendarName(),
+                        uc.getCalendarEntity().getCalendarType().getType(),
+                        uc.getRole().getType(),
+                        uc.getCalendarEntity().getCalendarDescription(),
+                        uc.getCalendarEntity().getCreatedAt()
+                ))
+                .collect(Collectors.toList());
     }
 
     // TODO: 캘린더에 멤버 삭제하기

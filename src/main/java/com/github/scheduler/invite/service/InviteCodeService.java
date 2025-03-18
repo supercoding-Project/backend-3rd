@@ -14,6 +14,7 @@ public class InviteCodeService {
 
     private static final long INVITE_CODE_EXPIRE_TIME = 60 * 24; // 초대코드 유효기간: 1일
 
+    // 초대코드 생성 & 저장
     public String generateAndSaveInviteCode(Long calendarId) {
         String inviteCode = generateInviteCode();
         log.info("초대 코드 생성 완료: {}", inviteCode);

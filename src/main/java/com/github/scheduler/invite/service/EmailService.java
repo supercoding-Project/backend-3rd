@@ -16,6 +16,7 @@ import java.util.List;
 public class EmailService {
     private final JavaMailSender javaMailSender;
 
+    // 초대코드 이메일로 전송
     @Async
     public void sendInviteEmails(List<String> emailList, String inviteCode, Long calendarId) {
         for (String email : emailList) {
