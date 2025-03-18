@@ -54,7 +54,7 @@ public class TodoEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calendar_id")
-    private CalendarEntity calendarId;
+    private CalendarEntity calendar;
 
     @Column(name = "completed")
     private Boolean completed; // 완료 여부

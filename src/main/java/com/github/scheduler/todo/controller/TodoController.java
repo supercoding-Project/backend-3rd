@@ -5,7 +5,7 @@ import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
-import com.github.scheduler.todo.dto.CreateTodoDto;
+import com.github.scheduler.todo.dto.TodoCreateDto;
 import com.github.scheduler.todo.dto.TodoDeleteDto;
 import com.github.scheduler.todo.dto.TodoResponseDto;
 import com.github.scheduler.todo.dto.TodoUpdateDto;
@@ -46,54 +46,54 @@ public class TodoController {
         return ResponseEntity.ok(ApiResponse.success(todoResponse));
     }
 
-//    // 할 일 등록
-//    @Operation(summary = "할 일 등록", description = "새로운 할 일을 등록합니다.")
-//    @PostMapping
-//    public ResponseEntity<ApiResponse<List<CreateTodoDto>>> createTodo(
-//            @AuthenticationPrincipal CustomUserDetails customUserDetails,
-//            @Valid @RequestBody CreateTodoDto createTodoDto,
-//            @RequestParam(name = "calendarType", defaultValue = "TODO") CalendarType calendarType,
-//            @RequestParam(name = "calendarId") Long calendarId) {
-//
-//        if (customUserDetails == null) {
-//            throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
-//        }
-//
-//        List<CreateTodoDto> createdTodo = todoService.createTodo(customUserDetails, createTodoDto, calendarType, calendarId);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdTodo));
-//    }
-//
-//    // 할 일 수정
-//    @Operation(summary = "할 일 수정", description = "할 일을 수정합니다.")
-//    @PutMapping("/{todoId}")
-//    public ResponseEntity<ApiResponse<List<TodoUpdateDto>>> updateTodo(
-//            @AuthenticationPrincipal CustomUserDetails customUserDetails,
-//            @Valid @RequestBody TodoUpdateDto todoUpdateDto,
-//            @PathVariable Long todoId,
-//            @RequestParam(name = "calendarType", defaultValue = "TODO") CalendarType calendarType) {
-//
-//        if (customUserDetails == null) {
-//            throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
-//        }
-//
-//        List<TodoUpdateDto> updatedTodo = todoService.updateTodo(customUserDetails, todoUpdateDto, todoId, calendarType);
-//        return ResponseEntity.ok(ApiResponse.success(updatedTodo));
-//    }
-//
-//    // 할 일 삭제
-//    @Operation(summary = "할 일 삭제", description = "할 일을 삭제합니다.")
-//    @DeleteMapping("/{todoId}")
-//    public ResponseEntity<ApiResponse<TodoDeleteDto>> deleteTodo(
-//            @AuthenticationPrincipal CustomUserDetails customUserDetails,
-//            @PathVariable("todoId") Long todoId,
-//            @RequestParam(name = "calendarType", defaultValue = "TODO") CalendarType calendarType) {
-//
-//        if (customUserDetails == null) {
-//            throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
-//        }
-//
-//        TodoDeleteDto todoDelete = todoService.deleteTodo(customUserDetails, todoId, calendarType);
-//        return ResponseEntity.ok(ApiResponse.success(todoDelete));
-//    }
+    // 할 일 등록
+    @Operation(summary = "할 일 등록", description = "새로운 할 일을 등록합니다.")
+    @PostMapping
+    public ResponseEntity<ApiResponse<List<TodoCreateDto>>> createTodo(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Valid @RequestBody TodoCreateDto todoCreateDto,
+            @RequestParam(name = "calendarType", defaultValue = "TODO") CalendarType calendarType,
+            @RequestParam(name = "calendarId") Long calendarId) {
+
+        if (customUserDetails == null) {
+            throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
+        }
+
+        List<TodoCreateDto> createdTodo = todoService.createTodo(customUserDetails, todoCreateDto, calendarType, calendarId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdTodo));
+    }
+
+    // 할 일 수정
+    @Operation(summary = "할 일 수정", description = "할 일을 수정합니다.")
+    @PutMapping("/{todoId}")
+    public ResponseEntity<ApiResponse<List<TodoUpdateDto>>> updateTodo(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Valid @RequestBody TodoUpdateDto todoUpdateDto,
+            @PathVariable Long todoId,
+            @RequestParam(name = "calendarType", defaultValue = "TODO") CalendarType calendarType) {
+
+        if (customUserDetails == null) {
+            throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
+        }
+
+        List<TodoUpdateDto> updatedTodo = todoService.updateTodo(customUserDetails, todoUpdateDto, todoId, calendarType);
+        return ResponseEntity.ok(ApiResponse.success(updatedTodo));
+    }
+
+    // 할 일 삭제
+    @Operation(summary = "할 일 삭제", description = "할 일을 삭제합니다.")
+    @DeleteMapping("/{todoId}")
+    public ResponseEntity<ApiResponse<TodoDeleteDto>> deleteTodo(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable("todoId") Long todoId,
+            @RequestParam(name = "calendarType", defaultValue = "TODO") CalendarType calendarType) {
+
+        if (customUserDetails == null) {
+            throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
+        }
+
+        TodoDeleteDto todoDelete = todoService.deleteTodo(customUserDetails, todoId, calendarType);
+        return ResponseEntity.ok(ApiResponse.success(todoDelete));
+    }
 }
 

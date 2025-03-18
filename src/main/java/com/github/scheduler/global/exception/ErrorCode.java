@@ -26,7 +26,7 @@ public enum ErrorCode {
     NOT_FOUND_CALENDAR(HttpStatus.NOT_FOUND, "캘린더를 찾을 수 없습니다."),
     NOT_SHARED_CALENDAR(HttpStatus.BAD_REQUEST, "공용 캘린더가 아닙니다."),
     DUPLICATED_CALENDAR(HttpStatus.CONFLICT, "이미 가입된 캘린더입니다."),
-    INVALID_CALENDAR_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 캘린더 타입입니다."),
+    INVALID_CALENDAR_TYPE(HttpStatus.BAD_REQUEST, "요청한 캘린더 타입과 일정의 캘린더 타입이 일치하지 않습니다."),
     DUPLICATED_CALENDAR_NAME(HttpStatus.CONFLICT, "이미 존재하는 캘린더 이름입니다."),
 
     // invite 에러코드
@@ -42,6 +42,7 @@ public enum ErrorCode {
     PERSONAL_CALENDAR_NOT_FOUND(HttpStatus.NOT_FOUND, "개인 캘린더를 찾을 수 없습니다."),
     SHARED_CALENDAR_NOT_FOUND(HttpStatus.NOT_FOUND, "공유 캘린더를 찾을 수 없습니다."),
     SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 일정을 찾을 수 없습니다."),
+    TODO_NOT_FOUND(HttpStatus.NOT_FOUND,"할 일을 찾을 수 없습니다."),
 
 
     // MyPage 에러코드
