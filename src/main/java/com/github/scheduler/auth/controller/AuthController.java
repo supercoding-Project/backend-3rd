@@ -1,5 +1,6 @@
 package com.github.scheduler.auth.controller;
 
+import com.github.scheduler.auth.dto.EmailRequestDto;
 import com.github.scheduler.auth.dto.LoginDto;
 import com.github.scheduler.auth.dto.SignUpDto;
 import com.github.scheduler.auth.service.UserService;
@@ -49,6 +50,17 @@ public class AuthController {
         userService.signUp(signUpDto, image);
 
         return ResponseEntity.ok(ApiResponse.success("회원가입이 완료되었습니다."));
+    }
+
+    @PostMapping("/check-email")
+    public ResponseEntity<ApiResponse<String>> checkEmail(@RequestBody EmailRequestDto emailRequest) {
+        boolean isAvailable = userService.isEmailAvailable(emailRequest.getEmail());
+
+        if (isAvailable) {
+            return ResponseEntity.ok(ApiResponse.success("사용 가능한 이메일입니다."));
+        } else {
+            return ResponseEntity.ok(ApiResponse.success("중복된 이메일입니다."));
+        }
     }
 
     @Operation(summary = "유저 로그인", description = "로그인 API 입니다.")

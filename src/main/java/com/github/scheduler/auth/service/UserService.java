@@ -11,7 +11,6 @@ import com.github.scheduler.auth.repository.UserImageRepository;
 import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.global.config.auth.JwtTokenProvider;
 import com.github.scheduler.global.config.auth.filter.JwtAuthenticationFilter;
-import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.global.util.PasswordUtil;
@@ -70,6 +69,11 @@ public class UserService {
         }
 
         userRepository.save(userEntity);
+    }
+
+    // 이메일 중복 체크
+    public boolean isEmailAvailable(String email) {
+        return !userRepository.existsByEmail(email);
     }
 
     // 로그인
