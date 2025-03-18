@@ -36,13 +36,17 @@ public class TodoController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(name = "view", defaultValue = "MONTHLY") String view,
             @RequestParam(name = "date") String date,
-            @RequestParam(name = "calendarType", defaultValue = "TODO") CalendarType calendarType) {
+            @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
 
-        List<TodoResponseDto> todoResponse = todoService.getTodo(customUserDetails, view, date, calendarType);
+        if (calendarId == null) {
+            throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
+        }
+
+        List<TodoResponseDto> todoResponse = todoService.getTodo(customUserDetails, view, date, calendarId);
         return ResponseEntity.ok(ApiResponse.success(todoResponse));
     }
 
@@ -52,14 +56,17 @@ public class TodoController {
     public ResponseEntity<ApiResponse<List<TodoCreateDto>>> createTodo(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody TodoCreateDto todoCreateDto,
-            @RequestParam(name = "calendarType", defaultValue = "TODO") CalendarType calendarType,
             @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
 
-        List<TodoCreateDto> createdTodo = todoService.createTodo(customUserDetails, todoCreateDto, calendarType, calendarId);
+        if (calendarId == null) {
+            throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
+        }
+
+        List<TodoCreateDto> createdTodo = todoService.createTodo(customUserDetails, todoCreateDto, calendarId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdTodo));
     }
 
@@ -70,13 +77,17 @@ public class TodoController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody TodoUpdateDto todoUpdateDto,
             @PathVariable Long todoId,
-            @RequestParam(name = "calendarType", defaultValue = "TODO") CalendarType calendarType) {
+            @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
 
-        List<TodoUpdateDto> updatedTodo = todoService.updateTodo(customUserDetails, todoUpdateDto, todoId, calendarType);
+        if (calendarId == null) {
+            throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
+        }
+
+        List<TodoUpdateDto> updatedTodo = todoService.updateTodo(customUserDetails, todoUpdateDto, todoId, calendarId);
         return ResponseEntity.ok(ApiResponse.success(updatedTodo));
     }
 
@@ -85,14 +96,19 @@ public class TodoController {
     @DeleteMapping("/{todoId}")
     public ResponseEntity<ApiResponse<TodoDeleteDto>> deleteTodo(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Valid @RequestBody TodoDeleteDto todoDeleteDto,
             @PathVariable("todoId") Long todoId,
-            @RequestParam(name = "calendarType", defaultValue = "TODO") CalendarType calendarType) {
+            @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
 
-        TodoDeleteDto todoDelete = todoService.deleteTodo(customUserDetails, todoId, calendarType);
+        if (calendarId == null) {
+            throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
+        }
+
+        TodoDeleteDto todoDelete = todoService.deleteTodo(customUserDetails, todoId, todoDeleteDto, calendarId);
         return ResponseEntity.ok(ApiResponse.success(todoDelete));
     }
 }

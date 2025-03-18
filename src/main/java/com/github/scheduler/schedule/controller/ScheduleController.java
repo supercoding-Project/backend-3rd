@@ -1,6 +1,5 @@
 package com.github.scheduler.schedule.controller;
 
-import com.github.scheduler.calendar.entity.CalendarType;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;
@@ -19,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -36,33 +34,37 @@ public class ScheduleController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(name = "view", defaultValue = "MONTHLY") String view,
             @RequestParam(name = "date") String date,
-            @RequestParam(name = "calendarTypes", required = false) List<CalendarType> calendarTypes) {
+            @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
 
-        // 선택된 타입이 없으면 기본으로 PERSONAL 을 사용
-        if (calendarTypes == null || calendarTypes.isEmpty()) {
-            calendarTypes = Collections.singletonList(CalendarType.PERSONAL);
+        if (calendarId == null) {
+            throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
         }
 
-        List<ScheduleDto> schedule = scheduleService.getSchedules(customUserDetails, view, date, calendarTypes);
+        List<ScheduleDto> schedule = scheduleService.getSchedules(customUserDetails, view, date, calendarId);
         return ResponseEntity.ok(ApiResponse.success(schedule));
     }
 
     // 일정 등록
-    @Operation(summary = "일정 등록", description = "캘린더 타입을 선택하여 개인 또는 팀 일정을 등록합니다.")
+    @Operation(summary = "일정 등록", description = "캘린더 Id를 통해 개인 또는 팀 일정을 등록합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<List<CreateScheduleDto>>> createSchedule(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody CreateScheduleDto createScheduleDto,
-            @RequestParam(name = "calendarType", defaultValue = "PERSONAL") CalendarType calendarType) {
+            @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
-        List<CreateScheduleDto> createdSchedule = scheduleService.createSchedule(customUserDetails, createScheduleDto, calendarType);
+
+        if (calendarId == null) {
+            throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
+        }
+
+        List<CreateScheduleDto> createdSchedule = scheduleService.createSchedule(customUserDetails, createScheduleDto, calendarId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdSchedule));
     }
 
@@ -73,12 +75,17 @@ public class ScheduleController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody UpdateScheduleDto updateScheduleDto,
             @PathVariable("scheduleId") Long scheduleId,
-            @RequestParam(name = "calendarType", defaultValue = "PERSONAL") CalendarType calendarType) {
+            @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
-        List<UpdateScheduleDto> updatedSchedules = scheduleService.updateSchedule(customUserDetails, updateScheduleDto, scheduleId, calendarType);
+
+        if (calendarId == null) {
+            throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
+        }
+
+        List<UpdateScheduleDto> updatedSchedules = scheduleService.updateSchedule(customUserDetails, updateScheduleDto, scheduleId, calendarId);
         return ResponseEntity.ok(ApiResponse.success(updatedSchedules));
     }
 
@@ -89,12 +96,17 @@ public class ScheduleController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody DeleteScheduleDto deleteScheduleDto,
             @PathVariable("scheduleId") Long scheduleId,
-            @RequestParam(name = "calendarType", defaultValue = "PERSONAL") CalendarType calendarType) {
+            @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
-        DeleteScheduleDto deletedSchedule = scheduleService.deleteSchedule(customUserDetails, deleteScheduleDto, scheduleId, calendarType);
+
+        if (calendarId == null) {
+            throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
+        }
+
+        DeleteScheduleDto deletedSchedule = scheduleService.deleteSchedule(customUserDetails, deleteScheduleDto, scheduleId, calendarId);
         return ResponseEntity.ok(ApiResponse.success(deletedSchedule));
     }
 }
