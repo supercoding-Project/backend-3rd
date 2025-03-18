@@ -1,5 +1,7 @@
 package com.github.scheduler.calendar.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.github.scheduler.auth.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "calendar")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class CalendarEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "calendar_id")
@@ -28,5 +31,6 @@ public class CalendarEntity {
     private UserEntity owner;
 
     @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<UserCalendarEntity> userCalendarEntities;
 }

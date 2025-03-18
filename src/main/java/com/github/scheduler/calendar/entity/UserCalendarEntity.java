@@ -1,8 +1,10 @@
 package com.github.scheduler.calendar.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.github.scheduler.auth.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import net.minidev.json.annotate.JsonIgnore;
 
 @Getter
 @Setter
@@ -22,6 +24,7 @@ public class UserCalendarEntity {
 
     @ManyToOne
     @JoinColumn(name = "calendar_id", nullable = false)
+    @JsonBackReference
     private CalendarEntity calendar;
 
     @Enumerated(EnumType.STRING)

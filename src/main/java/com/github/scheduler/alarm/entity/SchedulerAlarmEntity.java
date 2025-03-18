@@ -1,16 +1,19 @@
 package com.github.scheduler.alarm.entity;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.calendar.entity.CalendarEntity;
+import com.github.scheduler.schedule.entity.SchedulerEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.sql.ConnectionBuilder;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "schedule_alarm")
 public class SchedulerAlarmEntity {
     @Id
@@ -25,9 +28,12 @@ public class SchedulerAlarmEntity {
     @JoinColumn(name = "calendar_id", nullable = false)
     private CalendarEntity calendar;
 
-//    @ManyToOne
-//    @JoinColumn(name = "schedule_id", nullable = false)
-//    private ScheduleEntity schedule;
+    @ManyToOne
+    @JoinColumn(name = "schedule_id", nullable = false)
+    private SchedulerEntity schedule;
+
+    @Column(name = "type", nullable = false)
+    private String type; // DB에 저장
 
     @Column(name = "is_checked", nullable = false)
     private boolean isChecked = false;
@@ -37,6 +43,7 @@ public class SchedulerAlarmEntity {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
+
 
     @PreUpdate
     public void setUpdatedAt() {
