@@ -7,6 +7,8 @@ import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.corundumstudio.socketio.annotation.OnEvent;
 import com.github.scheduler.chat.dto.ChatRoomCreate;
 import com.github.scheduler.chat.dto.ChatRoomDto;
+import com.github.scheduler.chat.dto.ChatRoomJoinRequest;
+import com.github.scheduler.chat.dto.ChatRoomUserDto;
 import com.github.scheduler.chat.service.ChatService;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
@@ -67,8 +69,19 @@ public class ChatEventHandler {
     }
     // 채팅방 입장
     //@Operation(summary = "채팅방 입장", description = "채팅방에 참여")
-    //@OnEvent("joinRoom")
+    @OnEvent("joinRoom")
+    public ResponseEntity<ApiResponse<ChatRoomUserDto>> onJoinRoom(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            SocketIOClient client, ChatRoomJoinRequest request){
 
+        checkUser(customUserDetails);
+        log.info("Received joinRoom event: roomId={}, userId={}", request.getRoomId(), request.getUserId());
+
+        ApiResponse<ChatRoomUserDto> chatRoomDto = chatService.joinRoom(request,client);
+
+        return ResponseEntity.ok(chatRoomDto);
+
+    }
 
     // 메시지 전송
 

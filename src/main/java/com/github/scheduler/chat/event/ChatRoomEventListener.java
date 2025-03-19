@@ -20,4 +20,10 @@ public class ChatRoomEventListener {
 
         log.info("create room successful: {}", roomId);
     }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleChatRoomJoined(ChatRoomJoinEvent event) {
+        //String roomId = event.getChatRoomUserDto();//.getChatRoomId()+"_";
+    }
+
 }

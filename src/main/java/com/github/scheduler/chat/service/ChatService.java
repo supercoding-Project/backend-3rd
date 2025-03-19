@@ -1,13 +1,19 @@
 package com.github.scheduler.chat.service;
 
 import com.corundumstudio.socketio.SocketIOClient;
+import com.github.scheduler.auth.entity.UserEntity;
+import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.auth.service.UserService;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.repository.CalendarRepository;
 import com.github.scheduler.chat.dto.ChatRoomCreate;
 import com.github.scheduler.chat.dto.ChatRoomDto;
+import com.github.scheduler.chat.dto.ChatRoomJoinRequest;
+import com.github.scheduler.chat.dto.ChatRoomUserDto;
 import com.github.scheduler.chat.entity.ChatRoom;
+import com.github.scheduler.chat.entity.ChatRoomUser;
 import com.github.scheduler.chat.event.ChatRoomCreateEvent;
+import com.github.scheduler.chat.event.ChatRoomJoinEvent;
 import com.github.scheduler.chat.repository.ChatMessageRepository;
 import com.github.scheduler.chat.repository.ChatRoomRepository;
 import com.github.scheduler.chat.repository.ChatRoomUserRepository;
@@ -28,6 +34,7 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final CalendarRepository calendarRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final UserRepository userRepository;
 
     @Transactional
     public ApiResponse<ChatRoomDto> createRoom(ChatRoomCreate roomCreate, SocketIOClient client) {
@@ -51,6 +58,32 @@ public class ChatService {
         eventPublisher.publishEvent(new ChatRoomCreateEvent(chatRoomDto,client));
 
         return ApiResponse.success(chatRoomDto);
+    }
+
+    @Transactional
+    public ApiResponse<ChatRoomUserDto> joinRoom(ChatRoomJoinRequest request, SocketIOClient client) {
+        // 채팅방 입장
+        // 채팅방 찾기
+        ChatRoom chatRoom = chatRoomRepository.findById(request.getRoomId())
+                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
+        // user 찾기
+        UserEntity user = userRepository.findById(request.getUserId())
+                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage()));
+        ChatRoomUser chatRoomUser = ChatRoomUser.builder()
+                .chatRoom(chatRoom)
+                .user(user)
+                .lastReadMessageId(null)
+                .build();
+        ChatRoomUser chatUser = chatRoomUserRepository.save(chatRoomUser);
+        ChatRoomUserDto chatRoomUserDto = ChatRoomUserDto.builder()
+                .chatRoomId(chatUser.getChatRoom().getId())
+                .userId(chatUser.getUser().getUserId())
+                .lastReadMessageId(chatUser.getLastReadMessageId())
+                .joinedAt(chatUser.getJoinedAt())
+                .build();
+
+        eventPublisher.publishEvent(new ChatRoomJoinEvent(chatRoomUserDto,client));
+        return ApiResponse.success(chatRoomUserDto);
     }
 
     // TODO : 읽음 처리 (동시성 처리 필요)
