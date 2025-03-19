@@ -2,6 +2,7 @@ CREATE TABLE calendar (
                           calendar_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                           calendar_name VARCHAR(255) NOT NULL,
                           owner_id BIGINT NOT NULL, -- 캘린더 생성자
+                          calendar_description varchar(255),
                           calendar_type VARCHAR(20), -- 캘린더 타입 설정(개인, 공용, 할일)
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
