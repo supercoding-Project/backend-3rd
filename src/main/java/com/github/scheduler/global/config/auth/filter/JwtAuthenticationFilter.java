@@ -18,7 +18,6 @@ import java.io.IOException;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_TYPE = "BEARER";
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
@@ -37,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.info("Security Context에 '{}' 인증 정보를 저장했습니다. uri: {}", authentication.getName(), requestURI);
 
         } else {
-            log.debug("유효한 JWT 토큰이 없습니다, uri: {}", requestURI);
+            log.debug("유효한 JWT 토큰이 없습니다, 요청 uri: {}", requestURI);
         }
 
         filterChain.doFilter(request, response);
@@ -45,7 +44,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        log.info("Authorization 헤더 값: {}", bearerToken);
 
         if (!StringUtils.hasText(bearerToken)) {
             log.warn("Authorization 헤더가 없음");

@@ -35,7 +35,7 @@ public class UserImageService {
         }
     }
 
-    // 이미지 파일을 저장하는 메서드
+    // 이미지 파일을 저장
     public String saveImage(MultipartFile image, String uploadsDir) throws IOException {
         // 파일 이름 생성
         String fileName = UUID.randomUUID().toString().replace("-", "") + "_" + image.getOriginalFilename();
