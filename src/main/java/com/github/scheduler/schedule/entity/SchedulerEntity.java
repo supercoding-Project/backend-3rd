@@ -67,4 +67,25 @@ public class SchedulerEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    public void updateScheduleInfo(String title, LocalDateTime startTime, LocalDateTime endTime,
+                                   String location,String memo) {
+        this.title = title;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.location = location;
+        this.memo = memo;
+    }
+
+    public boolean isDeleted() {
+        return this.scheduleStatus == ScheduleStatus.DELETED;
+    }
+
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
+        this.scheduleStatus = ScheduleStatus.DELETED;
+    }
 }

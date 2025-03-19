@@ -62,4 +62,9 @@ public class    UserEntity {
 
         return this;
     }
+
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
 }

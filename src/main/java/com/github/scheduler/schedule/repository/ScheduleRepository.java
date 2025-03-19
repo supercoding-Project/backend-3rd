@@ -1,6 +1,7 @@
 package com.github.scheduler.schedule.repository;
 
 import com.github.scheduler.auth.entity.UserEntity;
+import com.github.scheduler.schedule.entity.ScheduleStatus;
 import com.github.scheduler.schedule.entity.SchedulerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -14,6 +15,10 @@ public interface ScheduleRepository extends JpaRepository<SchedulerEntity, Long>
 
     List<SchedulerEntity> findByStartTimeBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
-    List<SchedulerEntity> findByCreateUserIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
-            UserEntity createUserId, LocalDateTime now1, LocalDateTime now2);
+    List<SchedulerEntity> findByCreateUserIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(UserEntity createUserId, LocalDateTime now1, LocalDateTime now2);
+
+    List<SchedulerEntity> findByCreateUserIdAndScheduleStatusNot(UserEntity user, ScheduleStatus status);
+
+
+
 }
