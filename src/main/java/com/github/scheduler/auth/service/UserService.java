@@ -34,7 +34,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final UserImageRepository userImageRepository;
+    //private final UserImageRepository userImageRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordUtil passwordUtil = new PasswordUtil();
     private final UserImageService userImageService;

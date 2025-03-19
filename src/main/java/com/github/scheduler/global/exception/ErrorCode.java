@@ -42,7 +42,9 @@ public enum ErrorCode {
     NOT_FOUND_USERINFO(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
     DELETE_USERINFO(HttpStatus.NOT_FOUND,"삭제된 사용자 정보입니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "수정된 정보가 없습니다. 계속 진행 하시겠습니까?"),
-    INVALID_INPUT(HttpStatus.BAD_REQUEST,"캘린더 ID 형식이 올바르지 않습니다." );
+    INVALID_INPUT(HttpStatus.BAD_REQUEST,"캘린더 ID 형식이 올바르지 않습니다." ),
+    NOT_SAVE_FILE(HttpStatus.BAD_REQUEST, "파일 저장에 실패했습니다."),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 유효하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

@@ -1,5 +1,6 @@
 package com.github.scheduler.calendar.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.github.scheduler.auth.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,6 +24,7 @@ public class UserCalendarEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calendar_id", nullable = false)
+    @JsonBackReference
     private CalendarEntity calendarEntity;
 
     @Column(name = "role", nullable = false)

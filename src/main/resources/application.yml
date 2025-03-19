@@ -30,3 +30,13 @@ spring:
                     auth: true
                     starttls:
                         enable: true
+
+cloud:
+    aws:
+        s3:
+            bucket: ${BUCKET_NAME}
+        stack.auto: false
+        region.static: ap-northeast-2
+        credentials:
+            accessKey: ${ACCESS_KEY}
+            secretKey: ${S3_SECRET_KEY}

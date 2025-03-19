@@ -1,5 +1,6 @@
 package com.github.scheduler.calendar.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.github.scheduler.auth.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,6 +14,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "calendar")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class CalendarEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
