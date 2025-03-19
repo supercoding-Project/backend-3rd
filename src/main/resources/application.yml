@@ -17,7 +17,7 @@ spring:
         redis:
             host: localhost
             port: 6379
-            timeout: 60000  # 연결 타임아웃 (60초)
+            timeout: 60000
 
     mail:
         host: smtp.gmail.com
@@ -30,3 +30,13 @@ spring:
                     auth: true
                     starttls:
                         enable: true
+
+cloud:
+    aws:
+        s3:
+            bucket: ${BUCKET_NAME}
+        stack.auto: false
+        region.static: ap-northeast-2
+        credentials:
+            accessKey: ${ACCESS_KEY}
+            secretKey: ${S3_SECRET_KEY}

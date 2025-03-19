@@ -17,10 +17,13 @@ import com.github.scheduler.invite.service.EmailService;
 import com.github.scheduler.invite.service.InviteCodeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -32,6 +35,7 @@ public class CalendarService {
     private final UserCalendarRepository userCalendarRepository;
     private final InviteCodeService inviteCodeService;
     private final EmailService emailService;
+    private final StringRedisTemplate redisTemplate;
 
     // 캘린더 생성
     @Transactional
@@ -63,6 +67,7 @@ public class CalendarService {
         CalendarEntity calendarEntity = CalendarEntity.builder()
                 .calendarName(calendarRequestDto.getCalendarName())
                 .owner(userEntity)
+                .calendarDescription(calendarRequestDto.getCalendarDescription())
                 .calendarType(calendarType)
                 .createdAt(now)
                 .build();
@@ -80,67 +85,94 @@ public class CalendarService {
         return CalendarResponseDto.builder()
                 .calendarId(calendarEntity.getCalendarId())
                 .calendarName(calendarEntity.getCalendarName())
+                .calendarDescription(calendarEntity.getCalendarDescription())
                 .calendarType(calendarEntity.getCalendarType().getType())
                 .calendarRole(userCalendarEntity.getRole().getType())
                 .createdAt(calendarEntity.getCreatedAt())
                 .build();
     }
 
-    // 이메일로 초대코드 보내기
+    // 공용 캘린더 초대코드 이메일로 전송
+    @Transactional
     public ApiResponse<String> sendInviteCodesByEmail(Long calendarId, String ownerEmail, List<String> emailList) {
-        log.info("📩 초대 코드 전송 요청 - 캘린더 ID: {}, 요청자: {}, 대상자 수: {}", calendarId, ownerEmail, emailList.size());
+        log.info("초대 코드 전송 요청 - 캘린더 ID: {}, 요청자: {}, 대상자 수: {}", calendarId, ownerEmail, emailList.size());
 
-        // 초대 코드 생성 (또는 기존 코드 조회)
+        // 캘린더 Owner 인지 확인
+        CalendarEntity calendar = calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_CALENDAR, "존재하지 않는 캘린더입니다."));
+
+        if (!calendar.getOwner().getEmail().equals(ownerEmail)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED_CALENDAR, ErrorCode.UNAUTHORIZED_CALENDAR.getMessage());
+        }
+
+        log.info("{}는 캘린더 {}의 Owner입니다.", ownerEmail, calendarId);
+
         String inviteCode = inviteCodeService.getInviteCode(calendarId);
-        log.info("🔍 기존 초대 코드 조회 결과: {}", inviteCode);
 
         if (inviteCode == null) {
             inviteCode = inviteCodeService.generateAndSaveInviteCode(calendarId);
-            log.info("✅ 새로운 초대 코드 생성: {}", inviteCode);
+            log.info("새로운 초대 코드 생성: {}", inviteCode);
         }
 
         // 이메일 전송
         emailService.sendInviteEmails(emailList, inviteCode, calendarId);
-        log.info("🔍 Redis 저장 확인 - invite:{} -> {}", inviteCode, calendarId);
+        log.info("초대 코드 {}가 {}명에게 이메일 전송", inviteCode, emailList.size());
 
-        log.info("초대 코드 {}가 {}명에게 이메일로 전송됨", inviteCode, emailList.size());
         return ApiResponse.success("초대 코드가 이메일로 전송되었습니다.");
     }
 
+    // 이메일로 받은 초대코드로 공용 캘린더에 가입
     @Transactional
-    public void joinCalendar(String email, String inviteConde) {
-        // redis 에서 초대코드 검증
-        Long calendarId = inviteCodeService.validateInviteCode(inviteConde);
-        if (calendarId == null) {
-            throw new AppException(ErrorCode.INVALID_INVITE_CODE, ErrorCode.INVALID_INVITE_CODE.getMessage());
-        }
+    public void joinCalendar(String email, String inviteCode) {
+        // Redis 에서 초대 코드 검증 및 calendarId 조회
+        Long calendarId = inviteCodeService.validateInviteCode(inviteCode);
+        log.info("Redis에서 조회된 calendarId: {}", calendarId);
 
-        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage())
-        );
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, "사용자를 찾을 수 없습니다."));
+        log.info("사용자 정보 조회 완료 - email: {}", email);
 
-        CalendarEntity calendarEntity = calendarRepository.findByCalendarId(calendarId).orElseThrow(
-                () -> new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage())
-        );
+        // 캘린더 조회 (Owner 정보 포함)
+        CalendarEntity calendarEntity = calendarRepository.findByCalendarIdWithOwner(calendarId);
+        log.info("캘린더 조회 완료 - 캘린더 ID: {}, Owner: {}", calendarEntity.getCalendarId(), calendarEntity.getOwner().getEmail());
 
         if (calendarEntity.getCalendarType() != CalendarType.SHARED) {
-            throw new AppException(ErrorCode.NOT_SHARED_CALENDAR, ErrorCode.NOT_SHARED_CALENDAR.getMessage());
+            throw new AppException(ErrorCode.NOT_SHARED_CALENDAR, "공용 캘린더가 아닙니다.");
         }
 
-        boolean isAlreadyJoined = userCalendarRepository.existsByUserEntityAndCalendarEntity(userEntity, calendarEntity);
-        if (isAlreadyJoined) {
-            throw new AppException(ErrorCode.DUPLICATED_CALENDAR, ErrorCode.DUPLICATED_CALENDAR.getMessage());
+        if (userCalendarRepository.existsByUserEntityAndCalendarEntity(userEntity, calendarEntity)) {
+            throw new AppException(ErrorCode.DUPLICATED_CALENDAR, "이미 가입된 캘린더입니다.");
         }
 
         UserCalendarEntity userCalendarEntity = UserCalendarEntity.builder()
                 .userEntity(userEntity)
                 .calendarEntity(calendarEntity)
                 .role(CalendarRole.MEMBER)
+                .joinedAt(LocalDateTime.now())
                 .build();
-
         userCalendarRepository.save(userCalendarEntity);
 
-        inviteCodeService.deleteInviteCode(inviteConde);
+        log.info("유저 캘린더 추가 완료 - 사용자: {}, 캘린더 ID: {}", email, calendarEntity.getCalendarId());
+    }
+
+    // 로그인한 유저의 모든 캘린더 조회
+    @Transactional(readOnly = true)
+    public List<CalendarResponseDto> getUserCalendars(String email) {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage()));
+
+        List<UserCalendarEntity> userCalendars = userCalendarRepository.findByUserEntity(userEntity);
+
+        return userCalendars.stream()
+                .map(uc -> new CalendarResponseDto(
+                        uc.getCalendarEntity().getCalendarId(),
+                        uc.getCalendarEntity().getCalendarName(),
+                        uc.getCalendarEntity().getCalendarType().getType(),
+                        uc.getRole().getType(),
+                        uc.getCalendarEntity().getCalendarDescription(),
+                        uc.getCalendarEntity().getCreatedAt()
+                ))
+                .collect(Collectors.toList());
     }
 
     // TODO: 캘린더에 멤버 삭제하기

@@ -14,5 +14,6 @@ import java.util.Optional;
 @Repository
 public interface CalendarRepository extends JpaRepository<CalendarEntity, Long> {
     boolean existsByCalendarNameAndCalendarType(String calendarName, CalendarType calendarType);
-    Optional<CalendarEntity> findByCalendarId(Long calendarId);
+    @Query("SELECT c FROM CalendarEntity c JOIN FETCH c.owner WHERE c.calendarId = :calendarId")
+    CalendarEntity findByCalendarIdWithOwner(@Param("calendarId") Long calendarId);
 }

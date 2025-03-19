@@ -16,6 +16,7 @@ import java.util.List;
 public class EmailService {
     private final JavaMailSender javaMailSender;
 
+    // 초대코드 이메일로 전송
     @Async
     public void sendInviteEmails(List<String> emailList, String inviteCode, Long calendarId) {
         for (String email : emailList) {
@@ -23,8 +24,7 @@ public class EmailService {
                 MimeMessage message = javaMailSender.createMimeMessage();
                 MimeMessageHelper messageHelper = new MimeMessageHelper(message, true, "UTF-8");
 
-                // 📌 발신자 이메일 설정 (반드시 필요)
-                messageHelper.setFrom("violetcarrot21@gmail.com");  // 🚨 반드시 설정
+                messageHelper.setFrom("violetcarrot21@gmail.com");
 
                 messageHelper.setTo(email);
                 messageHelper.setSubject("공용 캘린더 초대 코드");

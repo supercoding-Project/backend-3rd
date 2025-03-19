@@ -16,6 +16,7 @@ import java.util.List;
 public class CalendarResponseDto {
     private Long calendarId;
     private String calendarName;
+    private String calendarDescription;
     private String calendarType;
     private String calendarRole;
     private LocalDateTime createdAt;
