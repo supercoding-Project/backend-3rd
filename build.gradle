@@ -63,9 +63,22 @@ dependencies {
 	// oauth2
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+	//socket.io
+	implementation 'com.corundumstudio.socketio:netty-socketio:1.7.18'
+	//implementation 'io.github.ozzyozbourne:spring-boot-starter-socket.io'
+
+    // e-mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	// Websoket
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+
+	// aws s3
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 }
 
 tasks.named('test') {

@@ -25,12 +25,6 @@ public class AlarmController {
 
     private final AlarmService alarmService;
 
-    @Operation(summary = "스케줄 알람 전송", description = "사용자 스케줄에 맞는 알람을 전송합니다.")
-    @GetMapping("/schedule")  // 경로 수정
-    public ResponseEntity<ApiResponse<String>> sendAlarms(@RequestParam Long userId) {
-        alarmService.checkAndSendScheduleAlarms(userId);
-        return ResponseEntity.ok(ApiResponse.success("알림이 성공적으로 전송되었습니다."));
-    }
 //    @Operation(summary = "스케줄 알람 정보 조회", description = "")
 //    @GetMapping("/schedule/{email}")
 //    public ResponseEntity<ApiResponse<String>> myScheduleAlarm(
@@ -56,9 +50,9 @@ public class AlarmController {
 //    public void myNoticeAlarm() {
 
 //    }
-    @Operation(summary = "읽지않은 알람 정보 조회", description = "")
-    @GetMapping
-    public void myAlarmCount() {
-
-    }
+//    @Operation(summary = "읽지않은 알람 정보 조회", description = "")
+//    @GetMapping
+//    public void myAlarmCount() {
+//
+//    }
 }

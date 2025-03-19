@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.github.scheduler.auth.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import net.minidev.json.annotate.JsonIgnore;
+
+import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -18,15 +18,18 @@ public class UserCalendarEntity {
     @Column(name = "user_calendar_id")
     private Long userCalendarID;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity userEntity;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calendar_id", nullable = false)
     @JsonBackReference
-    private CalendarEntity calendar;
+    private CalendarEntity calendarEntity;
 
-    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
     private CalendarRole role; // OWNER, MEMBER
+
+    @Column(name = "joined_at")
+    private LocalDateTime joinedAt;
 }
