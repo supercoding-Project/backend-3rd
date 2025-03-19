@@ -23,6 +23,7 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다. 다시 로그인 해주세요."),
 
     //calendar 에러코드
+    UNAUTHORIZED_CALENDAR(HttpStatus.UNAUTHORIZED, "내 캘린더가 아닙니다."),
     NOT_FOUND_CALENDAR(HttpStatus.NOT_FOUND, "캘린더를 찾을 수 없습니다."),
     NOT_SHARED_CALENDAR(HttpStatus.BAD_REQUEST, "공용 캘린더가 아닙니다."),
     DUPLICATED_CALENDAR(HttpStatus.CONFLICT, "이미 가입된 캘린더입니다."),
@@ -43,6 +44,8 @@ public enum ErrorCode {
     DELETE_USERINFO(HttpStatus.NOT_FOUND,"삭제된 사용자 정보입니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "수정된 정보가 없습니다. 계속 진행 하시겠습니까?"),
     INVALID_INPUT(HttpStatus.BAD_REQUEST,"캘린더 ID 형식이 올바르지 않습니다." ),
+    NOT_SAVE_FILE(HttpStatus.BAD_REQUEST, "파일 저장에 실패했습니다."),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 유효하지 않습니다."),
 
     // Chatting 에러코드
     NOT_FOUND_CHATROOM(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다.");

@@ -11,7 +11,6 @@ import com.github.scheduler.auth.repository.UserImageRepository;
 import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.global.config.auth.JwtTokenProvider;
 import com.github.scheduler.global.config.auth.filter.JwtAuthenticationFilter;
-import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.global.util.PasswordUtil;
@@ -35,13 +34,14 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final UserImageRepository userImageRepository;
+    //private final UserImageRepository userImageRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordUtil passwordUtil = new PasswordUtil();
     private final UserImageService userImageService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    // 회원가입
     @Transactional
     public void signUp(SignUpDto signUpDto, MultipartFile image) throws Exception{
         // 이메일 중복 확인
@@ -71,6 +71,12 @@ public class UserService {
         userRepository.save(userEntity);
     }
 
+    // 이메일 중복 체크
+    public boolean isEmailAvailable(String email) {
+        return !userRepository.existsByEmail(email);
+    }
+
+    // 로그인
     @Transactional
     public Map<String, String> login(LoginDto loginDto, HttpServletResponse httpServletResponse) {
         UserEntity userEntity = userRepository.findByEmail(loginDto.getEmail())
@@ -110,6 +116,7 @@ public class UserService {
         );
     }
 
+    // 토큰 재발급
     @Transactional
     public Map<String, String> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         // 쿠키에서 Refresh Token 가져오기
@@ -149,6 +156,7 @@ public class UserService {
         );
     }
 
+    // 회원탈퇴
     @Transactional
     public void withdrawalUser(String loginEmail, String requestBodyPassword, HttpSession httpSession) {
         UserEntity userEntity = userRepository.findByEmail(loginEmail)

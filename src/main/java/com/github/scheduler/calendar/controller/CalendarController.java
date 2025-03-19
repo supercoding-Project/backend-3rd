@@ -6,6 +6,7 @@ import com.github.scheduler.calendar.dto.CalendarResponseDto;
 import com.github.scheduler.calendar.service.CalendarService;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
+import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.invite.dto.InviteRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +19,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -63,21 +64,35 @@ public class CalendarController {
 
         return ResponseEntity.ok(calendarService.sendInviteCodesByEmail(calendarId, ownerEmail, inviteRequestDto.getEmailList()));
     }
-
     @Operation(summary = "초대코드 입력 후 캘린더 가입", description = "이메일로 받은 초대코드를 입력하여 공용캘린더에 가입")
     @PostMapping("/v1/calendars/join")
-    public ResponseEntity<?> joinCalendar(
+    public ResponseEntity<ApiResponse<String>> joinCalendar(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestBody CalendarJoinRequestDto calendarJoinRequestDto) {
 
         String email = customUserDetails.getUsername();
-        log.info("초대 코드 {} 입력 - 사용자: {}", calendarJoinRequestDto.getInviteCode(), email);
+        String inviteCode = calendarJoinRequestDto.getInviteCode();
 
-        calendarService.joinCalendar(email, calendarJoinRequestDto.getInviteCode());
+        if (inviteCode == null || inviteCode.trim().isEmpty() || inviteCode.length() != 8) {
+            throw new AppException(ErrorCode.INVALID_INVITE_CODE, ErrorCode.INVALID_INVITE_CODE.getMessage());
+        }
 
-        return ResponseEntity.ok().body(Map.of(
-                "success", true,
-                "message", "공용 캘린더 가입이 완료되었습니다."
-        ));
+        log.info("초대 코드 입력 - 사용자: {}, 코드: {}", email, inviteCode);
+
+        calendarService.joinCalendar(email, inviteCode);
+
+        return ResponseEntity.ok(ApiResponse.success("공용 캘린더 가입이 완료되었습니다."));
+    }
+
+    @Operation(summary = "모든 캘린더 조회", description = "로그인한 유저가 사용 중인 캘린더 전체 조회")
+    @GetMapping("/v1/calendars")
+    public ResponseEntity<ApiResponse<List<CalendarResponseDto>>> getCalendarList(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails)
+    {
+        String email = customUserDetails.getUsername();
+
+        List<CalendarResponseDto> calendarResponseDtoList = calendarService.getUserCalendars(email);
+
+        return ResponseEntity.ok(ApiResponse.success(calendarResponseDtoList));
     }
 }
