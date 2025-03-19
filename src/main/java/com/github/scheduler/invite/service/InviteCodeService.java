@@ -2,11 +2,8 @@ package com.github.scheduler.invite.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -15,11 +12,12 @@ import java.util.concurrent.TimeUnit;
 public class InviteCodeService {
     private final StringRedisTemplate redisTemplate;
 
-    private static final long INVITE_CODE_EXPIRE_TIME = 60; // 초대코드 유효기간: 1시간
+    private static final long INVITE_CODE_EXPIRE_TIME = 60 * 24; // 초대코드 유효기간: 1일
 
+    // 초대코드 생성 & 저장
     public String generateAndSaveInviteCode(Long calendarId) {
         String inviteCode = generateInviteCode();
-        log.info("📢 초대 코드 생성 완료: {}", inviteCode);
+        log.info("초대 코드 생성 완료: {}", inviteCode);
 
         try {
             redisTemplate.opsForValue().set(
@@ -28,14 +26,13 @@ public class InviteCodeService {
                     INVITE_CODE_EXPIRE_TIME,
                     TimeUnit.MINUTES
             );
-            log.info("✅ Redis에 초대 코드 저장 완료: invite:{} -> {}", inviteCode, calendarId);
 
             // 저장 후 값 확인
             String storedValue = redisTemplate.opsForValue().get("invite:" + inviteCode);
-            log.info("🔍 Redis 저장 값 확인: invite:{} -> {}", inviteCode, storedValue);
+            log.info("Redis 저장 값 확인: invite:{} -> {}", inviteCode, storedValue);
 
         } catch (Exception e) {
-            log.error("❌ Redis 저장 실패: {}", e.getMessage());
+            log.error("Redis 저장 실패: {}", e.getMessage());
         }
 
         return inviteCode;
@@ -46,6 +43,7 @@ public class InviteCodeService {
         return redisTemplate.opsForValue().get("invite:" + calendarId);
     }
 
+    // 초대 코드 검증
     public Long validateInviteCode(String inviteCode) {
         String key = "invite:" + inviteCode;
         String calendarId = redisTemplate.opsForValue().get(key);
