@@ -1,6 +1,5 @@
 package com.github.scheduler.todo.controller;
 
-import com.github.scheduler.calendar.entity.CalendarType;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;

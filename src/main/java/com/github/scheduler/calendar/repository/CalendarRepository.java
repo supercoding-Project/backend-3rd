@@ -16,5 +16,4 @@ public interface CalendarRepository extends JpaRepository<CalendarEntity, Long> 
     boolean existsByCalendarNameAndCalendarType(String calendarName, CalendarType calendarType);
     Optional<CalendarEntity> findByCalendarId(Long calendarId);
 
-    Optional<CalendarEntity> findPersonalCalendarByOwnerUserId(Long userId);
 }
