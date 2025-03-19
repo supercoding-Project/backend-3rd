@@ -6,10 +6,8 @@ import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.auth.service.UserService;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.repository.CalendarRepository;
-import com.github.scheduler.chat.dto.ChatRoomCreate;
-import com.github.scheduler.chat.dto.ChatRoomDto;
-import com.github.scheduler.chat.dto.ChatRoomJoinRequest;
-import com.github.scheduler.chat.dto.ChatRoomUserDto;
+import com.github.scheduler.chat.dto.*;
+import com.github.scheduler.chat.entity.ChatMessage;
 import com.github.scheduler.chat.entity.ChatRoom;
 import com.github.scheduler.chat.entity.ChatRoomUser;
 import com.github.scheduler.chat.event.ChatRoomCreateEvent;
@@ -76,7 +74,7 @@ public class ChatService {
                 .build();
         ChatRoomUser chatUser = chatRoomUserRepository.save(chatRoomUser);
         ChatRoomUserDto chatRoomUserDto = ChatRoomUserDto.builder()
-                .chatRoomId(chatUser.getChatRoom().getId())
+                .chatRoom(chatUser.getChatRoom())
                 .userId(chatUser.getUser().getUserId())
                 .lastReadMessageId(chatUser.getLastReadMessageId())
                 .joinedAt(chatUser.getJoinedAt())
@@ -84,6 +82,31 @@ public class ChatService {
 
         eventPublisher.publishEvent(new ChatRoomJoinEvent(chatRoomUserDto,client));
         return ApiResponse.success(chatRoomUserDto);
+    }
+
+    public ApiResponse<ChatMessageDto> sendMessage(SocketIOClient client, ChatMessageRequest request) {
+        //채팅방 찾기
+        // 채팅방 찾기
+        ChatRoom chatRoom = chatRoomRepository.findById(request.getRoomId())
+                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
+        // user 찾기
+        UserEntity sender = userRepository.findById(request.getSendUserId())
+                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage()));
+
+        // 메시지 저장
+        ChatMessage chatMessage = chatMessageRepository.save(
+                ChatMessage.builder()
+                        .chatRoom(chatRoom)
+                        .sendUser(sender)
+                        .message(request.getMessage())
+                        .fileURL(request.getFileURL())
+                        .build()
+        );
+        ChatMessageDto chatMessageDto = ChatMessageDto.builder()
+                .messageId(chatMessage.getId())
+                .build();
+
+        return ApiResponse.success(chatMessageDto);
     }
 
     // TODO : 읽음 처리 (동시성 처리 필요)

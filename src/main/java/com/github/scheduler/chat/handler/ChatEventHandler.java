@@ -5,10 +5,7 @@ import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.OnConnect;
 import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.corundumstudio.socketio.annotation.OnEvent;
-import com.github.scheduler.chat.dto.ChatRoomCreate;
-import com.github.scheduler.chat.dto.ChatRoomDto;
-import com.github.scheduler.chat.dto.ChatRoomJoinRequest;
-import com.github.scheduler.chat.dto.ChatRoomUserDto;
+import com.github.scheduler.chat.dto.*;
 import com.github.scheduler.chat.service.ChatService;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
@@ -84,6 +81,18 @@ public class ChatEventHandler {
     }
 
     // 메시지 전송
+    @OnEvent("sendMessage")
+    public ResponseEntity<ApiResponse<ChatMessageDto>> onSendMessage(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            SocketIOClient client, ChatMessageRequest request ){
+
+        checkUser(customUserDetails);
+        log.info("Received sendMessage event: roomId={}, userId={}", request.getRoomId(), request.getUserId());
+
+        ApiResponse<ChatMessageDto> chatMessage = chatService.sendMessage(client,request);
+
+    }
+
 
     // 메시지 읽음
 

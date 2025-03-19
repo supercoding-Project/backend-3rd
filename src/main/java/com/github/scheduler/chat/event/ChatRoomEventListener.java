@@ -23,7 +23,13 @@ public class ChatRoomEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleChatRoomJoined(ChatRoomJoinEvent event) {
-        //String roomId = event.getChatRoomUserDto();//.getChatRoomId()+"_";
+        String roomId = event.getChatRoomUserDto().getChatRoom().getId()+"_"
+                +event.getChatRoomUserDto().getChatRoom().getName();
+
+        event.getClient().joinRoom(roomId);
+        event.getClient().sendEvent("joinRoom", event.getChatRoomUserDto().getChatRoom());
+
+        log.info("Client joined successful: {}", roomId);
     }
 
 }
