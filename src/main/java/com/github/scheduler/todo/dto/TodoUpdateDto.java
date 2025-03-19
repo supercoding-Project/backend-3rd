@@ -14,6 +14,7 @@ public class TodoUpdateDto {
     private Long todoId; // 수정할 할 일을 식별하기 위한 ID
     private String todoContent;
     private LocalDate todoDate;
+    private Boolean completed;
     private RepeatScheduleDto repeatSchedule;
     private String memo;
 }

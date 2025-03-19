@@ -156,7 +156,7 @@ public class TodoService {
                 .build();
     }
 
-    //할 일 수정(수정 필요)
+    //할 일 수정
     @Transactional
     public List<TodoUpdateDto> updateTodo(CustomUserDetails customUserDetails, TodoUpdateDto todoUpdateDto,
                                           Long todoId, Long calendarId){
@@ -174,25 +174,28 @@ public class TodoService {
         }
 
         Long currentUserId = customUserDetails.getUserEntity().getUserId();
-        boolean canUpdate = false;
+
+        // 캘린더 타입에 따른 수정 권한 검증
         if (calendarEntity.getCalendarType().equals(CalendarType.PERSONAL)) {
-            // 개인 캘린더: 작성자만 수정 가능
-            canUpdate = todoEntity.getCreateUser().getUserId().equals(currentUserId);
-        } else if (calendarEntity.getCalendarType().equals(CalendarType.SHARED) || calendarEntity.getCalendarType().equals(CalendarType.TODO)) {
-            // 공유 혹은 할 일 캘린더: 해당 캘린더 구성원 여부 확인
-            if (userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
-                    calendarEntity.getCalendarId(), currentUserId)) {
-                canUpdate = true;
+            //PERSONAL 경우 작성자만 수정 가능
+            if (!todoEntity.getCreateUser().getUserId().equals(currentUserId)) {
+                throw new AppException(ErrorCode.UNAUTHORIZED_ACCESS, ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
             }
-        }
-        if (!canUpdate) {
-            throw new AppException(ErrorCode.UNAUTHORIZED_ACCESS, ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
+        } else if (calendarEntity.getCalendarType().equals(CalendarType.SHARED) || calendarEntity.getCalendarType().equals(CalendarType.TODO)) {
+            //SHARED 또는 할 일 경우 캘린더에 포함되어있는 사용자일 경우 수정 가능
+            if (!userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
+                    calendarEntity.getCalendarId(), currentUserId)) {
+                throw new AppException(ErrorCode.UNAUTHORIZED_ACCESS, ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
+            }
+        } else {
+            throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE, ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
         }
 
         //수정 할 필드
         todoEntity.setTodoContent(todoUpdateDto.getTodoContent());
         todoEntity.setTodoDate(todoUpdateDto.getTodoDate());
         todoEntity.setMemo(todoUpdateDto.getMemo());
+        todoEntity.setCompleted(todoUpdateDto.getCompleted());
         //반복 설정 수정
         if (todoUpdateDto.getRepeatSchedule() != null &&
                 todoUpdateDto.getRepeatSchedule().getRepeatType() != null &&
@@ -204,20 +207,23 @@ public class TodoService {
         }
 
         TodoEntity savedTodo = todoRepository.save(todoEntity);
+
         eventPublisher.publishEvent(new TodoUpdateEvent(savedTodo.getTodoId(), "할 일이 성공적으로 업데이트되었습니다."));
-        return Collections.singletonList(
-            TodoUpdateDto.builder()
+
+        TodoUpdateDto resultDto = TodoUpdateDto.builder()
                 .todoId(savedTodo.getTodoId())
                 .todoContent(savedTodo.getTodoContent())
                 .todoDate(savedTodo.getTodoDate())
                 .memo(savedTodo.getMemo())
+                .completed(savedTodo.getCompleted())
                 .repeatSchedule(RepeatScheduleDto.builder()
                         .repeatType(savedTodo.getRepeatType().name())
                         .repeatInterval(savedTodo.getRepeatInterval())
                         .repeatEndDate(savedTodo.getRepeatEndDate())
                         .build())
-                .build()
-        );
+                .build();
+
+        return Collections.singletonList(resultDto);
     }
 
     //할 일 삭제(수정 필요)

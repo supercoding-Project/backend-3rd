@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class CreateScheduleDto {
     private Long createUserId;
+    private Long calendarId;
     private String title;
     private String location;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private RepeatScheduleDto repeatSchedule;
     private String memo;
-    private Long calendarId;
 }

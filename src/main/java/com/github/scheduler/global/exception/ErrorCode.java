@@ -36,9 +36,8 @@ public enum ErrorCode {
     //schedule 에러코드
     NOT_AUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자 입니다."),
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자 정보가 존재하지 않습니다."),
-    UNTITLED(HttpStatus.BAD_REQUEST,"일정 제목은 필수 입력 사항 입니다."),
     DATE_FORMAT_INCORRECT(HttpStatus.BAD_REQUEST, "지원하지 않는 날짜 형식입니다."),
-    NOT_OBTAIN_LOCK(HttpStatus.CONFLICT,"일정 수정 락을 획득하지 못했습니다."),
+    TODO_NOT_SUPPORTED(HttpStatus.CONFLICT, "TODO 형식은 지원하지 않습니다."),
     SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 일정을 찾을 수 없습니다."),
     TODO_NOT_FOUND(HttpStatus.NOT_FOUND,"할 일을 찾을 수 없습니다."),
 
