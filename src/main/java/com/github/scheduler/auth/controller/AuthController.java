@@ -52,6 +52,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("회원가입이 완료되었습니다."));
     }
 
+    @Operation(summary = "이메일 중복 체크", description = "이메일 중복 확인하는 API 입니다.")
     @PostMapping("/check-email")
     public ResponseEntity<ApiResponse<String>> checkEmail(@RequestBody EmailRequestDto emailRequest) {
         boolean isAvailable = userService.isEmailAvailable(emailRequest.getEmail());
