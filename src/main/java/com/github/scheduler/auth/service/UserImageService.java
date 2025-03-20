@@ -4,10 +4,16 @@ import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.entity.UserImageEntity;
 import com.github.scheduler.auth.repository.UserImageRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.disk.DiskFileItem;
+import org.mockito.Mock;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,17 +27,36 @@ public class UserImageService {
     private final UserImageRepository userImageRepository;
 
     // 이미지 업로드
-    public void uploadUserImage(UserEntity userEntity, MultipartFile image) {
+    public void uploadUserImage(UserEntity userEntity, MultipartFile image, boolean isDefaultImage) {
         try {
-            // 프로필 이미지 저장 경로
-            String uploadDir = "src/main/resources/static/uploads/profiles/";
-            String dbFilePath = saveImage(image, uploadDir);
+            String dbFilePath;
+
+            if (isDefaultImage) {
+                dbFilePath = "/uploads/profiles/base.png"; // 기본 이미지 경로 그대로 사용
+            } else {
+                String uploadDir = "src/main/resources/static/uploads/profiles/";
+                dbFilePath = saveImage(image, uploadDir); // 업로드된 이미지만 저장
+            }
 
             UserImageEntity userImageEntity = new UserImageEntity(userEntity, dbFilePath);
             userImageRepository.save(userImageEntity);
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    // 기본 이미지 불러오기
+    public MultipartFile getDefaultProfileImage() throws IOException {
+        ClassPathResource defaultImageResource = new ClassPathResource("static/uploads/profiles/base.png");
+
+        try (InputStream inputStream = defaultImageResource.getInputStream()) {
+            return new MockMultipartFile(
+                    "base.png",
+                    "base.png",
+                    MediaType.IMAGE_PNG_VALUE,
+                    inputStream
+            );
         }
     }
 
