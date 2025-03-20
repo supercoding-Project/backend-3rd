@@ -14,7 +14,6 @@ import com.github.scheduler.schedule.entity.ScheduleStatus;
 import com.github.scheduler.schedule.event.DeleteScheduleEvent;
 import com.github.scheduler.schedule.event.UpdateScheduleEvent;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
-import com.github.scheduler.todo.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
