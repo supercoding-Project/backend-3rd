@@ -46,8 +46,7 @@ public class AuthController {
                             schema = @Schema(implementation = SignUpDto.class)
                     )
             )
-            @RequestPart(value = "dto") String dtoJson,  // JSON을 문자열로 받음
-
+            @RequestPart(value = "dto") String dtoJson,
             @Parameter(
                     description = "회원 프로필 이미지 파일",
                     content = @Content(
@@ -55,13 +54,12 @@ public class AuthController {
                             schema = @Schema(type = "string", format = "binary")
                     )
             )
-            @RequestPart(value = "image", required = false) MultipartFile image, // 이미지 파일 (선택)
+            @RequestPart(value = "image", required = false) MultipartFile image,
 
             BindingResult bindingResult) throws Exception {
 
         log.info("[POST]: 회원가입 요청");
 
-        // 🔥 JSON 문자열을 SignUpDto 객체로 변환
         SignUpDto signUpDto = objectMapper.readValue(dtoJson, SignUpDto.class);
 
         if (bindingResult.hasErrors()) {
