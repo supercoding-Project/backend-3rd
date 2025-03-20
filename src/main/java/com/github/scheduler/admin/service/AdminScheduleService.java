@@ -5,12 +5,11 @@ import com.github.scheduler.admin.dto.schedule.ScheduleModifyRequestDTO;
 import com.github.scheduler.admin.dto.schedule.ScheduleSimpleDTO;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.repository.UserRepository;
+import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
-import com.github.scheduler.schedule.entity.SchedulerEntity;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,7 +28,7 @@ public class AdminScheduleService {
 
         return users.stream()
                 .map(user -> {
-                    List<SchedulerEntity> schedules = scheduleRepository.findByCreateUserIdAndScheduleStatusNot(user, ScheduleStatus.DELETED);
+                    List<ScheduleEntity> schedules = scheduleRepository.findByCreateUserIdAndScheduleStatusNot(user, ScheduleStatus.DELETED);
                     return ResponseUserScheduleListDTO.from(user, schedules);
                 })
                 .collect(Collectors.toList());
@@ -39,21 +38,21 @@ public class AdminScheduleService {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("해당 유저를 찾을 수 없습니다."));
 
-        List<SchedulerEntity> schedules = scheduleRepository.findByCreateUserIdAndScheduleStatusNot(user, ScheduleStatus.DELETED);
+        List<ScheduleEntity> schedules = scheduleRepository.findByCreateUserIdAndScheduleStatusNot(user, ScheduleStatus.DELETED);
         return schedules.stream()
                 .map(ScheduleSimpleDTO::from)
                 .collect(Collectors.toList());
     }
 
     public void updateSchedule(long id, ScheduleModifyRequestDTO dto) {
-        SchedulerEntity schedule = scheduleRepository.findById(id)
+        ScheduleEntity schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("해당 일정이 존재하지 않습니다."));
 
         if (schedule.isDeleted()) {
             throw new RuntimeException("삭제된 일정은 수정할 수 없습니다.");
         }
         // 공용 일정인지 확인
-        if (schedule.getCalendarId() == null) {
+        if (schedule.getCalendar().getCalendarId() == null) {
             throw new RuntimeException("개인 일정은 관리자 권한으로 수정할 수 없습니다.");
         }
 
@@ -67,11 +66,11 @@ public class AdminScheduleService {
     }
 
     public void deleteSchedule(long id) {
-        SchedulerEntity schedule = scheduleRepository.findById(id)
+        ScheduleEntity schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("해당 일정이 존재하지 않습니다."));
 
         // 공용 일정인지 확인
-        if (schedule.getCalendarId() == null) {
+        if (schedule.getCalendar().getCalendarId() == null) {
             throw new RuntimeException("개인 일정은 관리자 권한으로 삭제할 수 없습니다.");
         }
 

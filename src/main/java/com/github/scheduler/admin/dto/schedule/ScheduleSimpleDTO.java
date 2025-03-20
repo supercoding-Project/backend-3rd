@@ -1,9 +1,10 @@
 package com.github.scheduler.admin.dto.schedule;
 
+import com.github.scheduler.schedule.entity.ScheduleEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import java.time.LocalDateTime;
-import com.github.scheduler.schedule.entity.SchedulerEntity;
+
 
 
 
@@ -15,7 +16,7 @@ public class ScheduleSimpleDTO {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-    public static ScheduleSimpleDTO from(SchedulerEntity schedule) {
+    public static ScheduleSimpleDTO from(ScheduleEntity schedule) {
         return new ScheduleSimpleDTO(
                 schedule.getScheduleId(),
                 schedule.getTitle(),

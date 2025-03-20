@@ -1,7 +1,7 @@
 package com.github.scheduler.admin.dto.schedule;
 
 import com.github.scheduler.auth.entity.UserEntity;
-import com.github.scheduler.schedule.entity.SchedulerEntity;
+import com.github.scheduler.schedule.entity.ScheduleEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -14,7 +14,7 @@ public class ResponseUserScheduleListDTO {
     private String username;
     private List<ScheduleSimpleDTO> schedules;
 
-    public static ResponseUserScheduleListDTO from(UserEntity user, List<SchedulerEntity> schedules) {
+    public static ResponseUserScheduleListDTO from(UserEntity user, List<ScheduleEntity> schedules) {
         return new ResponseUserScheduleListDTO(
                 user.getUserId(),
                 user.getUsername(),
