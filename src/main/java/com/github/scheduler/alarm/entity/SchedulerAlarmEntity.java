@@ -3,7 +3,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.calendar.entity.CalendarEntity;
-import com.github.scheduler.schedule.entity.SchedulerEntity;
+import com.github.scheduler.schedule.entity.ScheduleEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "schedule_alarm")
+@Table(name = "scheduler_alarm")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class SchedulerAlarmEntity {
     @Id
@@ -33,7 +33,7 @@ public class SchedulerAlarmEntity {
 
     @ManyToOne
     @JoinColumn(name = "schedule_id", nullable = false)
-    private SchedulerEntity schedule;
+    private ScheduleEntity schedule;
 
     @Column(name = "type", nullable = false)
     private String type; // DB에 저장

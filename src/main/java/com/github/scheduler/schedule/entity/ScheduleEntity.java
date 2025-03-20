@@ -2,6 +2,7 @@ package com.github.scheduler.schedule.entity;
 
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.calendar.entity.CalendarEntity;
+import com.github.scheduler.todo.entity.TodoEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -9,6 +10,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -17,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Table(name = "schedules")
-public class SchedulerEntity {
+public class ScheduleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,10 +42,10 @@ public class SchedulerEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "repeat_type", nullable = false)
-    private RepeatType repeatType = RepeatType.NONE;
+    private RepeatType repeatType;
 
     @Column(name = "repeat_interval", nullable = false)
-    private int repeatInterval = 0; //년 경우 1이면 1년마다 반복, 월 경우 1이면 1달 마다 반복, 주 경우 1이면 매 주 반복
+    private int repeatInterval; //년 경우 1이면 1년마다 반복, 월 경우 1이면 1달 마다 반복, 주 경우 1이면 매 주 반복
 
     @Column(name = "repeat_end_date")
     private LocalDate repeatEndDate;
@@ -54,7 +57,7 @@ public class SchedulerEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calendar_id")
-    private CalendarEntity calendarId; // 팀 일정이면 값 존재, 개인 일정이면 null
+    private CalendarEntity calendar;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "schedule_status", nullable = false)
@@ -67,4 +70,12 @@ public class SchedulerEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TodoEntity> todoList = new ArrayList<>();
+
+    @Version
+    @Column(name = "version")
+    private Long version;
+
 }

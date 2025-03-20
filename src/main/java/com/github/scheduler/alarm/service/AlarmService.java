@@ -12,8 +12,8 @@ import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.schedule.dto.ScheduleDto;
+import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
-import com.github.scheduler.schedule.entity.SchedulerEntity;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -98,7 +98,7 @@ public class AlarmService {
 //        schedulerAlarmRepository.saveAll(alarms);
 //    }
 
-    private String determineEventType(SchedulerEntity schedule) {
+    private String determineEventType(ScheduleEntity schedule) {
         if (schedule.getStartTime().isEqual(LocalDateTime.now())) {
             return "event_started";
         } else if (schedule.getScheduleStatus() == ScheduleStatus.CANCELLED) {

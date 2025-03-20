@@ -40,3 +40,6 @@ out/
 ## yaml 파일
 application-local.yml
 src/main/resources/application-local.yml
+
+## profile 이미지 파일
+src/main/resources/static/uploads/profiles/
