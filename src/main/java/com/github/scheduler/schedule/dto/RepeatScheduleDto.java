@@ -1,6 +1,5 @@
 package com.github.scheduler.schedule.dto;
 
-import com.github.scheduler.schedule.entity.SchedulerEntity;
 import lombok.*;
 
 import java.time.LocalDate;

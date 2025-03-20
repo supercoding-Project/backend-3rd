@@ -1,23 +1,30 @@
 package com.github.scheduler.schedule.repository;
 
 import com.github.scheduler.auth.entity.UserEntity;
+import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
-import com.github.scheduler.schedule.entity.SchedulerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface ScheduleRepository extends JpaRepository<SchedulerEntity, Long> {
-    List<SchedulerEntity> findByStartTimeBetweenAndCreateUserId_UserId(LocalDateTime startTime, LocalDateTime startTime2, Long createUserId);
+@Repository
+public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> {
 
-    List<SchedulerEntity> findByStartTimeBetweenAndCalendarIdIsNotNull(LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<ScheduleEntity> findByCalendarCalendarIdAndStartTimeBetween(Long calendarCalendarId, LocalDateTime startTimeAfter, LocalDateTime startTimeBefore);
 
-    List<SchedulerEntity> findByStartTimeBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<ScheduleEntity> findByStartTimeBetweenAndCalendarCalendarIdIsNotNull(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
-    List<SchedulerEntity> findByCreateUserIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(UserEntity createUserId, LocalDateTime now1, LocalDateTime now2);
+    List<ScheduleEntity> findByStartTimeBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
-    List<SchedulerEntity> findByCreateUserIdAndScheduleStatusNot(UserEntity user, ScheduleStatus status);
+    List<ScheduleEntity> findByCreateUserIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(UserEntity createUserId, LocalDateTime now1, LocalDateTime now2);
+
+    List<ScheduleEntity> findAllByEndTimeBeforeAndScheduleStatus(LocalDateTime now, ScheduleStatus scheduleStatus);
+
+    List<ScheduleEntity> findByCalendarCalendarIdAndScheduleStatusNotAndStartTimeBetween(Long calendarId, ScheduleStatus scheduleStatus, LocalDateTime startDateTime, LocalDateTime endDateTime);
+
+    List<ScheduleEntity> findByCreateUserIdAndScheduleStatusNot(UserEntity user, ScheduleStatus status);
 
 
 
