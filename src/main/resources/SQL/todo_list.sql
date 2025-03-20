@@ -1,7 +1,7 @@
 CREATE TABLE todo_list (
                            todo_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                            create_user_id BIGINT NOT NULL,
-                           schedule_id BIGINT NOT NULL,
+                           schedule_id BIGINT,
                            todo_content VARCHAR(225) NOT NULL,
                            todo_date DATE NOT NULL,
                            memo TEXT,
@@ -10,6 +10,7 @@ CREATE TABLE todo_list (
                            repeat_interval INT DEFAULT 0,
                            repeat_end_date DATE,
                            calendar_id BIGINT,
+                           version BIGINT NOT NULL DEFAULT 0,
                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                            FOREIGN KEY (create_user_id) REFERENCES users(user_id),
