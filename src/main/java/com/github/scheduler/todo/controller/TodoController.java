@@ -1,14 +1,14 @@
-package com.github.scheduler.schedule.controller;
+package com.github.scheduler.todo.controller;
 
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
-import com.github.scheduler.schedule.dto.CreateScheduleDto;
-import com.github.scheduler.schedule.dto.DeleteScheduleDto;
-import com.github.scheduler.schedule.dto.ScheduleDto;
-import com.github.scheduler.schedule.dto.UpdateScheduleDto;
-import com.github.scheduler.schedule.service.ScheduleService;
+import com.github.scheduler.todo.dto.TodoCreateDto;
+import com.github.scheduler.todo.dto.TodoDeleteDto;
+import com.github.scheduler.todo.dto.TodoResponseDto;
+import com.github.scheduler.todo.dto.TodoUpdateDto;
+import com.github.scheduler.todo.service.TodoService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +22,16 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("api/v1/schedules")
+@RequestMapping("api/v1/todo")
 @RequiredArgsConstructor
-public class ScheduleController {
+public class TodoController {
 
-    private final ScheduleService scheduleService;
+    private final TodoService todoService;
 
-    @Operation(summary = "일정 조회: 월별, 주별, 일별 조회", description = "사용자의 일정을 조회합니다. 일정 조회 시 할 일 정보가 함께 조회될 수 있습니다.")
+    // 할 일 조회: 월별, 주별, 일별 조회
+    @Operation(summary = "할 일 조회: 월별, 주별, 일별 조회", description = "사용자의 할 일을 조회합니다.")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ScheduleDto>>> getSchedules(
+    public ResponseEntity<ApiResponse<List<TodoResponseDto>>> getTodo(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(name = "view", defaultValue = "MONTHLY") String view,
             @RequestParam(name = "date") String date,
@@ -44,16 +45,16 @@ public class ScheduleController {
             throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
         }
 
-        List<ScheduleDto> schedule = scheduleService.getSchedules(customUserDetails, view, date, calendarId);
-        return ResponseEntity.ok(ApiResponse.success(schedule));
+        List<TodoResponseDto> todoResponse = todoService.getTodo(customUserDetails, view, date, calendarId);
+        return ResponseEntity.ok(ApiResponse.success(todoResponse));
     }
 
-    // 일정 등록
-    @Operation(summary = "일정 등록", description = "캘린더 Id를 통해 개인 또는 팀 일정을 등록합니다.")
+    // 할 일 등록
+    @Operation(summary = "할 일 등록", description = "새로운 할 일을 등록합니다.")
     @PostMapping
-    public ResponseEntity<ApiResponse<List<CreateScheduleDto>>> createSchedule(
+    public ResponseEntity<ApiResponse<List<TodoCreateDto>>> createTodo(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Valid @RequestBody CreateScheduleDto createScheduleDto,
+            @Valid @RequestBody TodoCreateDto todoCreateDto,
             @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
@@ -64,17 +65,17 @@ public class ScheduleController {
             throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
         }
 
-        List<CreateScheduleDto> createdSchedule = scheduleService.createSchedule(customUserDetails, createScheduleDto, calendarId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdSchedule));
+        List<TodoCreateDto> createdTodo = todoService.createTodo(customUserDetails, todoCreateDto, calendarId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdTodo));
     }
 
-    // 일정 수정 (개인 또는 팀 일정 수정)
-    @Operation(summary = "일정 수정", description = "개인 또는 팀 일정을 수정합니다.")
-    @PutMapping("/{scheduleId}")
-    public ResponseEntity<ApiResponse<List<UpdateScheduleDto>>> updateSchedule(
+    // 할 일 수정
+    @Operation(summary = "할 일 수정", description = "할 일을 수정합니다.")
+    @PutMapping("/{todoId}")
+    public ResponseEntity<ApiResponse<List<TodoUpdateDto>>> updateTodo(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Valid @RequestBody UpdateScheduleDto updateScheduleDto,
-            @PathVariable("scheduleId") Long scheduleId,
+            @Valid @RequestBody TodoUpdateDto todoUpdateDto,
+            @PathVariable("todoId") Long todoId,
             @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
@@ -85,16 +86,16 @@ public class ScheduleController {
             throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
         }
 
-        List<UpdateScheduleDto> updatedSchedules = scheduleService.updateSchedule(customUserDetails, updateScheduleDto, scheduleId, calendarId);
-        return ResponseEntity.ok(ApiResponse.success(updatedSchedules));
+        List<TodoUpdateDto> updatedTodo = todoService.updateTodo(customUserDetails, todoUpdateDto, todoId, calendarId);
+        return ResponseEntity.ok(ApiResponse.success(updatedTodo));
     }
 
-    // 일정 삭제 (개인 또는 팀 일정 삭제)
-    @Operation(summary = "일정 삭제", description = "개인 또는 팀 일정을 삭제합니다.")
-    @DeleteMapping("/{scheduleId}")
-    public ResponseEntity<ApiResponse<DeleteScheduleDto>> deleteSchedule(
+    // 할 일 삭제
+    @Operation(summary = "할 일 삭제", description = "할 일을 삭제합니다.")
+    @DeleteMapping("/{todoId}")
+    public ResponseEntity<ApiResponse<TodoDeleteDto>> deleteTodo(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @PathVariable("scheduleId") Long scheduleId,
+            @PathVariable("todoId") Long todoId,
             @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
@@ -105,7 +106,8 @@ public class ScheduleController {
             throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
         }
 
-        DeleteScheduleDto deletedSchedule = scheduleService.deleteSchedule(customUserDetails, scheduleId, calendarId);
-        return ResponseEntity.ok(ApiResponse.success(deletedSchedule));
+        TodoDeleteDto todoDelete = todoService.deleteTodo(customUserDetails, todoId, calendarId);
+        return ResponseEntity.ok(ApiResponse.success(todoDelete));
     }
 }
+
