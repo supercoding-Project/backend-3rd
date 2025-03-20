@@ -75,7 +75,7 @@ public class TodoController {
     public ResponseEntity<ApiResponse<List<TodoUpdateDto>>> updateTodo(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @Valid @RequestBody TodoUpdateDto todoUpdateDto,
-            @PathVariable Long todoId,
+            @PathVariable("todoId") Long todoId,
             @RequestParam(name = "calendarId") Long calendarId) {
 
         if (customUserDetails == null) {
@@ -95,7 +95,6 @@ public class TodoController {
     @DeleteMapping("/{todoId}")
     public ResponseEntity<ApiResponse<TodoDeleteDto>> deleteTodo(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Valid @RequestBody TodoDeleteDto todoDeleteDto,
             @PathVariable("todoId") Long todoId,
             @RequestParam(name = "calendarId") Long calendarId) {
 
@@ -107,7 +106,7 @@ public class TodoController {
             throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
         }
 
-        TodoDeleteDto todoDelete = todoService.deleteTodo(customUserDetails, todoId, todoDeleteDto, calendarId);
+        TodoDeleteDto todoDelete = todoService.deleteTodo(customUserDetails, todoId, calendarId);
         return ResponseEntity.ok(ApiResponse.success(todoDelete));
     }
 }

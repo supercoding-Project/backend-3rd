@@ -24,5 +24,5 @@ public class ScheduleDto {
     private String memo; //일정 설명
     private String calendarId;
     private String status; //일정 상태
-    private List<UserCalendarEntity> sharedUsers;  // 공유 캘린더인 경우 소속 유저 목록
+    private List<Long> sharedUserIds;  // 공유 캘린더인 경우 소속 유저 목록
 }

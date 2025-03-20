@@ -30,7 +30,7 @@ public class TodoEntity {
     private UserEntity createUser;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id", nullable = false)
+    @JoinColumn(name = "schedule_id")
     private ScheduleEntity schedule;
 
     @Column(name = "todo_content", nullable = false)

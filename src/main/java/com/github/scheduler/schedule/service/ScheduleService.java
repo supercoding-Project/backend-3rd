@@ -2,7 +2,6 @@ package com.github.scheduler.schedule.service;
 
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.entity.CalendarType;
-import com.github.scheduler.calendar.entity.UserCalendarEntity;
 import com.github.scheduler.calendar.repository.CalendarRepository;
 import com.github.scheduler.calendar.repository.UserCalendarRepository;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
@@ -15,9 +14,11 @@ import com.github.scheduler.schedule.entity.ScheduleStatus;
 import com.github.scheduler.schedule.event.DeleteScheduleEvent;
 import com.github.scheduler.schedule.event.UpdateScheduleEvent;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
+import com.github.scheduler.todo.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,14 +69,18 @@ public class ScheduleService {
             throw new AppException(ErrorCode.DATE_FORMAT_INCORRECT, ErrorCode.DATE_FORMAT_INCORRECT.getMessage());
         }
 
-        List<ScheduleEntity> scheduleEntities = scheduleRepository.findByCalendarCalendarIdAndStartTimeBetween(calendarId, startDateTime, endDateTime);
+        List<ScheduleEntity> scheduleEntities = scheduleRepository.findByCalendarCalendarIdAndScheduleStatusNotAndStartTimeBetween(calendarId, ScheduleStatus.CANCELLED, startDateTime, endDateTime);
         List<ScheduleDto> result = new ArrayList<>();
         for (ScheduleEntity schedule : scheduleEntities) {
             ScheduleDto dto = convertScheduleEntityToDto(schedule);
-            // 캘린더가 존재하고 캘린더 타입이 SHARED 인 경우, 해당 캘린더에 속한 공유 사용자들을 조회
+            // 공유 캘린더인 경우, 캘린더에 소속된 userId 목록만 설정
             if (schedule.getCalendar() != null && schedule.getCalendar().getCalendarType().equals(CalendarType.SHARED)) {
-                List<UserCalendarEntity> sharedUsers = userCalendarRepository.findByCalendarEntityCalendarId(schedule.getCalendar().getCalendarId());
-                dto.setSharedUsers(sharedUsers);
+                List<Long> sharedIds = userCalendarRepository
+                        .findByCalendarEntityCalendarId(schedule.getCalendar().getCalendarId())
+                        .stream()
+                        .map(userCalendarEntity -> userCalendarEntity.getUserEntity().getUserId())
+                        .toList();
+                dto.setSharedUserIds(sharedIds);
             }
             result.add(dto);
         }
@@ -85,7 +90,7 @@ public class ScheduleService {
         return result;
     }
 
-    // ScheduleEntity -> ScheduleDto
+    // ScheduleEntity -> ScheduleDto 변환
     private ScheduleDto convertScheduleEntityToDto(ScheduleEntity entity) {
         RepeatScheduleDto repeatScheduleDto = RepeatScheduleDto.builder()
                 .repeatType(String.valueOf(entity.getRepeatType()))
@@ -106,6 +111,7 @@ public class ScheduleService {
                 .status(entity.getScheduleStatus().getScheduleStatus())
                 .build();
     }
+
 
     //일정 등록
     @Transactional
@@ -222,10 +228,14 @@ public class ScheduleService {
             scheduleEntity.setRepeatInterval(updateScheduleDto.getRepeatSchedule().getRepeatInterval());
             scheduleEntity.setRepeatEndDate(updateScheduleDto.getRepeatSchedule().getRepeatEndDate());
         }
-
-        ScheduleEntity savedScheduleEntity = scheduleRepository.save(scheduleEntity);
-        eventPublisher.publishEvent(new UpdateScheduleEvent(savedScheduleEntity.getScheduleId(), "일정이 성공적으로 수정되었습니다."));
-        return Collections.singletonList(convertScheduleEntityToUpdateScheduleDto(savedScheduleEntity));
+        try {
+            scheduleRepository.flush();
+            eventPublisher.publishEvent(new UpdateScheduleEvent(scheduleId, "일정이 성공적으로 수정되었습니다.", true));
+            return Collections.singletonList(convertScheduleEntityToUpdateScheduleDto(scheduleEntity));
+        } catch (OptimisticLockingFailureException exception) {
+            eventPublisher.publishEvent(new UpdateScheduleEvent(scheduleId, "동시 수정 충돌로 인해 수정 실패하였습니다.", false));
+            throw new AppException(ErrorCode.NOT_UPDATE, ErrorCode.NOT_UPDATE.getMessage());
+        }
     }
 
     private UpdateScheduleDto convertScheduleEntityToUpdateScheduleDto(ScheduleEntity savedEntity) {
@@ -247,7 +257,7 @@ public class ScheduleService {
 
     //일정 삭제
     @Transactional
-    public DeleteScheduleDto deleteSchedule(CustomUserDetails customUserDetails, DeleteScheduleDto deleteScheduleDto, Long scheduleId, Long calendarId) {
+    public DeleteScheduleDto deleteSchedule(CustomUserDetails customUserDetails, Long scheduleId, Long calendarId) {
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage());
         }
@@ -272,17 +282,20 @@ public class ScheduleService {
             throw new AppException(ErrorCode.UNAUTHORIZED_ACCESS, ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
         }
 
-        scheduleRepository.delete(scheduleEntity);
-        eventPublisher.publishEvent(new DeleteScheduleEvent(scheduleId, "일정이 성공적으로 삭제되었습니다."));
+        try {
+            scheduleEntity.setScheduleStatus(ScheduleStatus.CANCELLED);
+            scheduleRepository.save(scheduleEntity);
+            scheduleRepository.flush();
 
-        String responseMessage = (deleteScheduleDto.getMessage() != null && !deleteScheduleDto.getMessage().isEmpty())
-                ? deleteScheduleDto.getMessage()
-                : "일정이 성공적으로 삭제되었습니다.";
+            eventPublisher.publishEvent(new DeleteScheduleEvent(scheduleId, "일정이 성공적으로 삭제되었습니다.", true));
 
-        return DeleteScheduleDto.builder()
-                .scheduleId(scheduleId)
-                .message(responseMessage)
-                .build();
-
+            return DeleteScheduleDto.builder()
+                    .scheduleId(scheduleId)
+                    .message("일정이 성공적으로 삭제되었습니다.")
+                    .build();
+        } catch (OptimisticLockingFailureException ex) {
+            eventPublisher.publishEvent(new DeleteScheduleEvent(scheduleId, "동시 삭제 충돌로 인해 삭제 실패하였습니다.", false));
+            throw new AppException(ErrorCode.NOT_DELETE, ErrorCode.NOT_DELETE.getMessage());
+        }
     }
 }

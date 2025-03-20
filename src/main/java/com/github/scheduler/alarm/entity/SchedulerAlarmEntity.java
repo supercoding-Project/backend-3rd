@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "schedule_alarm")
+@Table(name = "scheduler_alarm")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class SchedulerAlarmEntity {
     @Id

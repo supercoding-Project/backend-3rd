@@ -10,12 +10,30 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class TodoEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleTodoUpdatedEvent(TodoUpdateEvent event) {
-        log.info("Todo {} updated successfully. Message: {}", event.getTodoId(), event.getMessage());
+    public void handleTodoUpdatedSuccess(TodoUpdateEvent event) {
+        if (event.isSuccess()){
+            log.info("Todo {} updated successfully. Message: {}", event.getTodoId(), event.getMessage());
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
+    public void handleTodoUpdateFail(TodoUpdateEvent event){
+        if (!event.isSuccess()){
+            log.warn("Todo {} update failed. Message: {}", event.getTodoId(), event.getMessage());
+        }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleTodoDeleteEvent(TodoDeleteEvent event) {
-        log.info("Todo {} deleted successfully. Message: {}", event.getTodoId(), event.getMessage());
+    public void handleTodoDeleteSuccess(TodoDeleteEvent event) {
+        if (event.isSuccess()){
+            log.info("Todo {} delete successfully. Message: {}", event.getTodoId(), event.getMessage());
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
+    public void handleTodoDeleteFail(TodoDeleteEvent event){
+        if (!event.isSuccess()){
+            log.warn("Todo {} delete failed. Message: {}", event.getTodoId(), event.getMessage());
+        }
     }
 }

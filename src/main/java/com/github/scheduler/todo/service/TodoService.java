@@ -19,6 +19,7 @@ import com.github.scheduler.todo.event.TodoUpdateEvent;
 import com.github.scheduler.todo.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -206,29 +207,30 @@ public class TodoService {
             todoEntity.setRepeatEndDate(todoUpdateDto.getRepeatSchedule().getRepeatEndDate());
         }
 
-        TodoEntity savedTodo = todoRepository.save(todoEntity);
-
-        eventPublisher.publishEvent(new TodoUpdateEvent(savedTodo.getTodoId(), "할 일이 성공적으로 업데이트되었습니다."));
-
-        TodoUpdateDto resultDto = TodoUpdateDto.builder()
-                .todoId(savedTodo.getTodoId())
-                .todoContent(savedTodo.getTodoContent())
-                .todoDate(savedTodo.getTodoDate())
-                .memo(savedTodo.getMemo())
-                .completed(savedTodo.getCompleted())
-                .repeatSchedule(RepeatScheduleDto.builder()
-                        .repeatType(savedTodo.getRepeatType().name())
-                        .repeatInterval(savedTodo.getRepeatInterval())
-                        .repeatEndDate(savedTodo.getRepeatEndDate())
-                        .build())
-                .build();
-
-        return Collections.singletonList(resultDto);
+        try {
+            eventPublisher.publishEvent(new TodoUpdateEvent(todoId, "할 일이 성공적으로 업데이트되었습니다.", true));
+            todoRepository.flush();
+            return Collections.singletonList(TodoUpdateDto.builder()
+                    .todoId(todoEntity.getTodoId())
+                    .todoContent(todoEntity.getTodoContent())
+                    .todoDate(todoEntity.getTodoDate())
+                    .memo(todoEntity.getMemo())
+                    .completed(todoEntity.getCompleted())
+                    .repeatSchedule(RepeatScheduleDto.builder()
+                            .repeatType(todoEntity.getRepeatType().name())
+                            .repeatInterval(todoEntity.getRepeatInterval())
+                            .repeatEndDate(todoEntity.getRepeatEndDate())
+                            .build())
+                    .build());
+        } catch (OptimisticLockingFailureException ex) {
+            eventPublisher.publishEvent(new TodoUpdateEvent(todoId, "동시 수정 충돌로 인해 업데이트에 실패했습니다.", false));
+            throw new AppException(ErrorCode.NOT_UPDATE, ErrorCode.NOT_UPDATE.getMessage());
+        }
     }
 
     //할 일 삭제(수정 필요)
     @Transactional
-    public TodoDeleteDto deleteTodo(CustomUserDetails customUserDetails, Long todoId,TodoDeleteDto todoDeleteDto, Long calendarId) {
+    public TodoDeleteDto deleteTodo(CustomUserDetails customUserDetails, Long todoId, Long calendarId) {
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
         }
@@ -238,39 +240,31 @@ public class TodoService {
 
         CalendarEntity calendarEntity = todoEntity.getCalendar();
         if (calendarEntity == null || !calendarEntity.getCalendarId().equals(calendarId)) {
-            throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE, ErrorCode.INVALID_CALENDAR_TYPE.getMessage() );
+            throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE, ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
         }
 
         Long currentUserId = customUserDetails.getUserEntity().getUserId();
-        boolean canDelete = false;
-        if (calendarEntity.getCalendarType().equals(CalendarType.PERSONAL)) {
-            // 개인 캘린더: 작성자만 수정 가능
-            canDelete = todoEntity.getCreateUser().getUserId().equals(currentUserId);
-        } else if (calendarEntity.getCalendarType().equals(CalendarType.SHARED)
-                || calendarEntity.getCalendarType().equals(CalendarType.TODO)) {
-            // 공유 혹은 할 일 캘린더: 해당 캘린더 구성원 여부 확인
-            if (userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(
-                    calendarEntity.getCalendarId(), currentUserId)) {
-                canDelete = true;
-            }
-        }
+        boolean canDelete = calendarEntity.getCalendarType().equals(CalendarType.PERSONAL)
+                ? todoEntity.getCreateUser().getUserId().equals(currentUserId)
+                : userCalendarRepository.existsByCalendarEntityCalendarIdAndUserEntityUserId(calendarId, currentUserId);
+
         if (!canDelete) {
             throw new AppException(ErrorCode.UNAUTHORIZED_ACCESS, ErrorCode.UNAUTHORIZED_ACCESS.getMessage());
         }
 
-        todoRepository.delete(todoEntity);
+        try {
+            todoRepository.delete(todoEntity);
+            todoRepository.flush();
+            eventPublisher.publishEvent(new TodoDeleteEvent(todoId, "할 일이 성공적으로 삭제되었습니다.", true));
 
-        eventPublisher.publishEvent(new TodoDeleteEvent(todoId, "할 일이 성공적으로 삭제되었습니다."));
-
-        String responseMessage = (todoDeleteDto.getMessage() != null && !todoDeleteDto.getMessage().isEmpty())
-                ? todoDeleteDto.getMessage()
-                : "할 일이 성공적으로 삭제되었습니다.";
-
-        return TodoDeleteDto.builder()
-                .todoId(todoId)
-                .message(responseMessage)
-                .build();
-
+            return TodoDeleteDto.builder()
+                    .todoId(todoId)
+                    .message("할 일이 성공적으로 삭제되었습니다.")
+                    .build();
+        } catch (OptimisticLockingFailureException ex) {
+            eventPublisher.publishEvent(new TodoDeleteEvent(todoId, "동시 삭제 충돌로 인해 삭제 실패하였습니다.", false));
+            throw new AppException(ErrorCode.NOT_DELETE, ErrorCode.NOT_DELETE.getMessage());
+        }
     }
 }
 

@@ -40,6 +40,9 @@ public enum ErrorCode {
     TODO_NOT_SUPPORTED(HttpStatus.CONFLICT, "TODO 형식은 지원하지 않습니다."),
     SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 일정을 찾을 수 없습니다."),
     TODO_NOT_FOUND(HttpStatus.NOT_FOUND,"할 일을 찾을 수 없습니다."),
+    NOT_UPDATE(HttpStatus.CONFLICT, "다른 사용자가 동시에 수정 중입니다."),
+    NOT_DELETE(HttpStatus.CONFLICT, "다른 사용자가 동시에 삭제 중입니다."),
+
 
 
     // MyPage 에러코드

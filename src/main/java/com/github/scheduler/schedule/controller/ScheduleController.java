@@ -94,7 +94,6 @@ public class ScheduleController {
     @DeleteMapping("/{scheduleId}")
     public ResponseEntity<ApiResponse<DeleteScheduleDto>> deleteSchedule(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Valid @RequestBody DeleteScheduleDto deleteScheduleDto,
             @PathVariable("scheduleId") Long scheduleId,
             @RequestParam(name = "calendarId") Long calendarId) {
 
@@ -106,7 +105,7 @@ public class ScheduleController {
             throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
         }
 
-        DeleteScheduleDto deletedSchedule = scheduleService.deleteSchedule(customUserDetails, deleteScheduleDto, scheduleId, calendarId);
+        DeleteScheduleDto deletedSchedule = scheduleService.deleteSchedule(customUserDetails, scheduleId, calendarId);
         return ResponseEntity.ok(ApiResponse.success(deletedSchedule));
     }
 }
