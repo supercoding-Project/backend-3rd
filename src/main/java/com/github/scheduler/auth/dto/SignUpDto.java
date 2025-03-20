@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter  // 🔥 추가!
-@NoArgsConstructor  // 🔥 기본 생성자 추가!
+@Setter
+@NoArgsConstructor
 public class SignUpDto {
     @NotBlank(message = "이메일을 입력하세요.")
     @Pattern(regexp = "^(?:\\w+\\.?)*\\w+@(?:\\w+\\.)+\\w+$", message = "이메일 형식이 올바르지 않습니다.")
