@@ -1,5 +1,6 @@
 package com.github.scheduler.auth.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.scheduler.auth.dto.EmailRequestDto;
 import com.github.scheduler.auth.dto.LoginDto;
 import com.github.scheduler.auth.dto.SignUpDto;
@@ -9,14 +10,17 @@ import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -30,18 +34,34 @@ import java.util.Map;
 public class AuthController {
 
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
+    private final ObjectMapper objectMapper;
 
-    @Operation(summary = "유저 회원가입", description = "회원가입 api 입니다.")
-    @PostMapping("/signup")
+    @Operation(summary = "회원가입", description = "JSON 데이터(dto)와 이미지 파일(image)을 함께 업로드하는 회원가입 API")
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<String>> signUp(
-            @Validated @RequestPart(value = "dto") SignUpDto signUpDto,
-            @RequestPart(value = "image") MultipartFile image,
+            @Parameter(
+                    description = "회원가입 정보(JSON 형식)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SignUpDto.class)
+                    )
+            )
+            @RequestPart(value = "dto") String dtoJson,
+            @Parameter(
+                    description = "회원 프로필 이미지 파일",
+                    content = @Content(
+                            mediaType = "image/png",
+                            schema = @Schema(type = "string", format = "binary")
+                    )
+            )
+            @RequestPart(value = "image", required = false) MultipartFile image,
+
             BindingResult bindingResult) throws Exception {
 
         log.info("[POST]: 회원가입 요청");
 
-        // 유효성 검사 실패 시
+        SignUpDto signUpDto = objectMapper.readValue(dtoJson, SignUpDto.class);
+
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.fail(ErrorCode.BINDING_RESULT_ERROR));
