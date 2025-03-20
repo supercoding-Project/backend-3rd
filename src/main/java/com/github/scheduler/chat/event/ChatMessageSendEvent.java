@@ -9,5 +9,5 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ChatMessageSendEvent {
     private final ChatMessageDto chatMessageDto;
-    private final SocketIOClient socketIOClient;
+    private final SocketIOClient client;
 }

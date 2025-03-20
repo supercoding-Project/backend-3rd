@@ -10,6 +10,8 @@ import com.github.scheduler.chat.dto.*;
 import com.github.scheduler.chat.entity.ChatMessage;
 import com.github.scheduler.chat.entity.ChatRoom;
 import com.github.scheduler.chat.entity.ChatRoomUser;
+import com.github.scheduler.chat.event.ChatMessageEventListener;
+import com.github.scheduler.chat.event.ChatMessageSendEvent;
 import com.github.scheduler.chat.event.ChatRoomCreateEvent;
 import com.github.scheduler.chat.event.ChatRoomJoinEvent;
 import com.github.scheduler.chat.repository.ChatMessageRepository;
@@ -62,11 +64,9 @@ public class ChatService {
     public ApiResponse<ChatRoomUserDto> joinRoom(ChatRoomJoinRequest request, SocketIOClient client) {
         // 채팅방 입장
         // 채팅방 찾기
-        ChatRoom chatRoom = chatRoomRepository.findById(request.getRoomId())
-                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
+        ChatRoom chatRoom = findRoomById(request.getRoomId());
         // user 찾기
-        UserEntity user = userRepository.findById(request.getUserId())
-                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage()));
+        UserEntity user = findUserById(request.getUserId());
         ChatRoomUser chatRoomUser = ChatRoomUser.builder()
                 .chatRoom(chatRoom)
                 .user(user)
@@ -84,14 +84,13 @@ public class ChatService {
         return ApiResponse.success(chatRoomUserDto);
     }
 
+    @Transactional
     public ApiResponse<ChatMessageDto> sendMessage(SocketIOClient client, ChatMessageRequest request) {
         //채팅방 찾기
         // 채팅방 찾기
-        ChatRoom chatRoom = chatRoomRepository.findById(request.getRoomId())
-                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
+        ChatRoom chatRoom = findRoomById(request.getRoomId());
         // user 찾기
-        UserEntity sender = userRepository.findById(request.getSendUserId())
-                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage()));
+        UserEntity sender = findUserById(request.getSendUserId());
 
         // 메시지 저장
         ChatMessage chatMessage = chatMessageRepository.save(
@@ -110,7 +109,7 @@ public class ChatService {
                 .createdAt(chatMessage.getCreatedAt())
                 .build();
 
-        eventPublisher.publishEvent(new ChatMessage);
+        eventPublisher.publishEvent(new ChatMessageSendEvent(chatMessageDto,client));
 
         return ApiResponse.success(chatMessageDto);
     }
@@ -119,5 +118,13 @@ public class ChatService {
     // sol.1 : pessimistic lock 데이터를 조회할 때 락을 걸어 순차적으로 처리
     // sol.2 : optimistic lock 충돌 가능성을 가정하고, 최종 커밋 시점에 변경 사항 확인 => 충돌 발생시 재시도 로직 추가
     // sol.3 : Redis 사용 - 동시성 보장+성능 최적화 => Redis 장애 시 데이터 유실 가능 이중화 고려해야함
-    
+    private ChatRoom findRoomById(Long roomId) {
+        return chatRoomRepository.findById(roomId)
+                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
+    }
+
+    private UserEntity findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage()));
+    }
 }

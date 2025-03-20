@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Component;
 
-@Tag(name = "Socket.io Chat", description = "Socket.io 기반 채팅 API")
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -87,9 +86,11 @@ public class ChatEventHandler {
             SocketIOClient client, ChatMessageRequest request ){
 
         checkUser(customUserDetails);
-        log.info("Received sendMessage event: roomId={}, userId={}", request.getRoomId(), request.getUserId());
+        log.info("Received sendMessage event: roomId={}, userId={}", request.getRoomId(), request.getSendUserId());
 
         ApiResponse<ChatMessageDto> chatMessage = chatService.sendMessage(client,request);
+
+        return ResponseEntity.ok(chatMessage);
 
     }
 
