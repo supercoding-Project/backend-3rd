@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,11 +35,9 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    //private final UserImageRepository userImageRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordUtil passwordUtil = new PasswordUtil();
     private final UserImageService userImageService;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RefreshTokenRepository refreshTokenRepository;
 
     // 회원가입
@@ -64,9 +63,16 @@ public class UserService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        if (image != null) {
-            userImageService.uploadUserImage(userEntity, image);
+        boolean isDefaultImage = false; // 기본 이미지 여부 플래그
+
+        // 기본 프로필 이미지 적용 (이미지가 없으면 기본 이미지 사용)
+        if (image == null || image.isEmpty()) {
+            image = userImageService.getDefaultProfileImage();
+            isDefaultImage = true;
         }
+
+        // 기본 이미지인지 여부를 전달하여 저장
+        userImageService.uploadUserImage(userEntity, image, isDefaultImage);
 
         userRepository.save(userEntity);
     }
