@@ -104,7 +104,13 @@ public class ChatService {
         );
         ChatMessageDto chatMessageDto = ChatMessageDto.builder()
                 .messageId(chatMessage.getId())
+                .chatRoom(chatRoom)
+                .senderId(chatMessage.getSendUser().getUserId())
+                .message(chatMessage.getMessage())
+                .createdAt(chatMessage.getCreatedAt())
                 .build();
+
+        eventPublisher.publishEvent(new ChatMessage);
 
         return ApiResponse.success(chatMessageDto);
     }
