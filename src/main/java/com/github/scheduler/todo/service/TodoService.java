@@ -14,6 +14,7 @@ import com.github.scheduler.todo.dto.TodoDeleteDto;
 import com.github.scheduler.todo.dto.TodoResponseDto;
 import com.github.scheduler.todo.dto.TodoUpdateDto;
 import com.github.scheduler.todo.entity.TodoEntity;
+import com.github.scheduler.todo.event.TodoCreateEvent;
 import com.github.scheduler.todo.event.TodoDeleteEvent;
 import com.github.scheduler.todo.event.TodoUpdateEvent;
 import com.github.scheduler.todo.repository.TodoRepository;
@@ -137,6 +138,7 @@ public class TodoService {
                 .build();
 
         TodoEntity savedTodo = todoRepository.save(todoEntity);
+        eventPublisher.publishEvent(new TodoCreateEvent(todoEntity.getTodoId(), "할 일을 성공적으로 등록했습니다."));
         TodoCreateDto saveTodoCreateDto = convertTodoEntityToTodoCreateDto(savedTodo);
         return Collections.singletonList(saveTodoCreateDto);
     }

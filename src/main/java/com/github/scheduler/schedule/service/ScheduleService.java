@@ -12,6 +12,7 @@ import com.github.scheduler.schedule.entity.RepeatType;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
 import com.github.scheduler.schedule.event.DeleteScheduleEvent;
+import com.github.scheduler.schedule.event.ScheduleCreatedEvent;
 import com.github.scheduler.schedule.event.UpdateScheduleEvent;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
@@ -161,6 +162,7 @@ public class ScheduleService {
                 .build();
 
         ScheduleEntity savedScheduleEntity = scheduleRepository.save(scheduleEntity);
+        eventPublisher.publishEvent(new ScheduleCreatedEvent(scheduleEntity.getScheduleId(), "일정을 성공적으로 등록했습니다."));
         CreateScheduleDto saveCreateScheduleDto = convertScheduleEntityToCreateScheduleDto(savedScheduleEntity);
         return Collections.singletonList(saveCreateScheduleDto);
     }
