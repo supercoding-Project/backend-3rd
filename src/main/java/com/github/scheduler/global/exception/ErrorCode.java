@@ -27,7 +27,7 @@ public enum ErrorCode {
     NOT_FOUND_CALENDAR(HttpStatus.NOT_FOUND, "캘린더를 찾을 수 없습니다."),
     NOT_SHARED_CALENDAR(HttpStatus.BAD_REQUEST, "공용 캘린더가 아닙니다."),
     DUPLICATED_CALENDAR(HttpStatus.CONFLICT, "이미 가입된 캘린더입니다."),
-    INVALID_CALENDAR_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 캘린더 타입입니다."),
+    INVALID_CALENDAR_TYPE(HttpStatus.BAD_REQUEST, "잘못된 캘린더 ID 입니다."),
     DUPLICATED_CALENDAR_NAME(HttpStatus.CONFLICT, "이미 존재하는 캘린더 이름입니다."),
 
     // invite 에러코드
@@ -37,7 +37,14 @@ public enum ErrorCode {
     //schedule 에러코드
     NOT_AUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자 입니다."),
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자 정보가 존재하지 않습니다."),
-    UNTITLED(HttpStatus.BAD_REQUEST,"일정 제목은 필수 입력 사항 입니다."),
+    DATE_FORMAT_INCORRECT(HttpStatus.BAD_REQUEST, "지원하지 않는 날짜 형식입니다."),
+    TODO_NOT_SUPPORTED(HttpStatus.CONFLICT, "TODO 형식은 지원하지 않습니다."),
+    SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 일정을 찾을 수 없습니다."),
+    TODO_NOT_FOUND(HttpStatus.NOT_FOUND,"할 일을 찾을 수 없습니다."),
+    NOT_UPDATE(HttpStatus.CONFLICT, "다른 사용자가 동시에 수정 중입니다."),
+    NOT_DELETE(HttpStatus.CONFLICT, "다른 사용자가 동시에 삭제 중입니다."),
+
+
 
     // MyPage 에러코드
     NOT_FOUND_USERINFO(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),

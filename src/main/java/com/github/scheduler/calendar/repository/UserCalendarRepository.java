@@ -17,4 +17,8 @@ public interface UserCalendarRepository extends JpaRepository<UserCalendarEntity
 
     // 특정 사용자가 가입한 모든 캘린더 조회
     List<UserCalendarEntity> findByUserEntity(UserEntity userEntity);
+
+    List<UserCalendarEntity> findByCalendarEntityCalendarId(Long calendarId);
+
+    boolean existsByCalendarEntityCalendarIdAndUserEntityUserId(Long calendarId, Long currentUserId);
 }
