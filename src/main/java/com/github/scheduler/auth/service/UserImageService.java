@@ -31,7 +31,6 @@ public class UserImageService {
         try {
             String dbFilePath;
 
-            // 🔥 업로드된 이미지만 `saveImage()`를 호출하여 저장
             if (isDefaultImage) {
                 dbFilePath = "/uploads/profiles/base.png"; // 기본 이미지 경로 그대로 사용
             } else {
