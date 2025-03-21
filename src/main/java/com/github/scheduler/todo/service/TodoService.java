@@ -14,6 +14,7 @@ import com.github.scheduler.todo.dto.TodoDeleteDto;
 import com.github.scheduler.todo.dto.TodoResponseDto;
 import com.github.scheduler.todo.dto.TodoUpdateDto;
 import com.github.scheduler.todo.entity.TodoEntity;
+import com.github.scheduler.todo.event.TodoCreateEvent;
 import com.github.scheduler.todo.event.TodoDeleteEvent;
 import com.github.scheduler.todo.event.TodoUpdateEvent;
 import com.github.scheduler.todo.repository.TodoRepository;
@@ -43,7 +44,7 @@ public class TodoService {
 
     //할 일 조회
     @Transactional
-    public List<TodoResponseDto> getTodo(CustomUserDetails customUserDetails, String view, String date, Long calendarId) {
+    public List<TodoResponseDto> getTodo(CustomUserDetails customUserDetails, String view, String date, List<Long> calendarId) {
         // 인증된 사용자 확인
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage());
@@ -67,7 +68,7 @@ public class TodoService {
         }
 
         // calendarId를 기준으로 할 일 조회
-        List<TodoEntity> todoEntities = todoRepository.findByCalendarCalendarIdAndTodoDateBetween(calendarId, startDate, endDate);
+        List<TodoEntity> todoEntities = todoRepository.findByCalendarCalendarIdInAndTodoDateBetween(calendarId, startDate, endDate);
         List<TodoResponseDto> todoResponseDto = new ArrayList<>();
         for (TodoEntity todo : todoEntities){
             TodoResponseDto dto = convertTodoEntityToDto(todo);
@@ -137,6 +138,7 @@ public class TodoService {
                 .build();
 
         TodoEntity savedTodo = todoRepository.save(todoEntity);
+        eventPublisher.publishEvent(new TodoCreateEvent(todoEntity.getTodoId(), "할 일을 성공적으로 등록했습니다."));
         TodoCreateDto saveTodoCreateDto = convertTodoEntityToTodoCreateDto(savedTodo);
         return Collections.singletonList(saveTodoCreateDto);
     }
