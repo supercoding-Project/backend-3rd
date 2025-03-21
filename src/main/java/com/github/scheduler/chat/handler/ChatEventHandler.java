@@ -5,8 +5,7 @@ import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.OnConnect;
 import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.corundumstudio.socketio.annotation.OnEvent;
-import com.github.scheduler.chat.dto.ChatRoomCreate;
-import com.github.scheduler.chat.dto.ChatRoomDto;
+import com.github.scheduler.chat.dto.*;
 import com.github.scheduler.chat.service.ChatService;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
@@ -22,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Component;
 
-@Tag(name = "Socket.io Chat", description = "Socket.io 기반 채팅 API")
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -55,26 +53,47 @@ public class ChatEventHandler {
     public ResponseEntity<ApiResponse<ChatRoomDto>> onCreateRoom(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             SocketIOClient client, ChatRoomCreate roomCreate ) {
-
-        if (customUserDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail(ErrorCode.UNAUTHORIZED_ACCESS));
-        }
+        // user check
+        checkUser(customUserDetails);
         log.info("Received createRoom event: name={}, calendarId={}, userId={}",
                 roomCreate.getName(), roomCreate.getCalendarId(), roomCreate.getUserId());
 
-        client.joinRoom(roomCreate.getName());
-        client.sendEvent("createRoom", roomCreate.getName());
-        //checkUser(customUserDetails);
-        log.info("create room successful: {}", roomCreate.getName());
-        return ResponseEntity.ok(chatService.createRoom(roomCreate));
+        // room entity 추가
+        ApiResponse<ChatRoomDto> chatRoomDto = chatService.createRoom(roomCreate,client);
+
+        return ResponseEntity.ok(chatRoomDto);
     }
     // 채팅방 입장
     //@Operation(summary = "채팅방 입장", description = "채팅방에 참여")
-    //@OnEvent("joinRoom")
+    @OnEvent("joinRoom")
+    public ResponseEntity<ApiResponse<ChatRoomUserDto>> onJoinRoom(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            SocketIOClient client, ChatRoomJoinRequest request){
 
+        checkUser(customUserDetails);
+        log.info("Received joinRoom event: roomId={}, userId={}", request.getRoomId(), request.getUserId());
+
+        ApiResponse<ChatRoomUserDto> chatRoomDto = chatService.joinRoom(request,client);
+
+        return ResponseEntity.ok(chatRoomDto);
+
+    }
 
     // 메시지 전송
+    @OnEvent("sendMessage")
+    public ResponseEntity<ApiResponse<ChatMessageDto>> onSendMessage(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            SocketIOClient client, ChatMessageRequest request ){
+
+        checkUser(customUserDetails);
+        log.info("Received sendMessage event: roomId={}, userId={}", request.getRoomId(), request.getSendUserId());
+
+        ApiResponse<ChatMessageDto> chatMessage = chatService.sendMessage(client,request);
+
+        return ResponseEntity.ok(chatMessage);
+
+    }
+
 
     // 메시지 읽음
 
