@@ -12,6 +12,7 @@ import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.schedule.dto.ScheduleDto;
+import com.github.scheduler.schedule.entity.RepeatType;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
@@ -25,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,52 +53,91 @@ public class AlarmService {
         log.info("알림 전송: {} -> {}", alarm.getType(), userEmail);
     }
 
-//    @Transactional
-//    @Scheduled(fixedRate = 60000)  // 1분마다 실행
-//    public void checkAndSendScheduleAlarms() {
-//        Long userId = 1L;  // 테스트
-////        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-////
-////        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-////            log.warn("인증된 사용자가 없음.");
-////            return;
-////        }
-////
-////        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-////        Long userId = userDetails.getUserEntity().getUserId();
+    @Transactional
+    @Scheduled(cron = "0 * * * * *")
+    public void checkAndSendScheduleAlarms() {
+        Long userId = 1L;  // 테스트
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //
-//        UserEntity user = userRepository.findById(userId)
-//                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage()));
-//
-//        LocalDateTime now = LocalDateTime.now();
-//        log.info("현재 시간: {}", now);
-//
-//        List<SchedulerEntity> matchingSchedules = scheduleRepository.findByCreateUserIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(user, now, now);
-//
-//        if (matchingSchedules.isEmpty()) {
+//        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+//            log.warn("인증된 사용자가 없음.");
 //            return;
 //        }
 //
-//        List<SchedulerAlarmEntity> alarms = new ArrayList<>();
-//        for (SchedulerEntity schedule : matchingSchedules) {
-//            String eventType = determineEventType(schedule);
-//
-//            SchedulerAlarmEntity alarm = SchedulerAlarmEntity.builder()
-//                    .user(user)
-//                    .calendar(schedule.getCalendarId())
-//                    .schedule(schedule)
-//                    .isChecked(false)
-//                    .type(eventType)
-//                    .createdAt(now)
-//                    .updatedAt(now)
-//                    .build();
-//
-//            alarms.add(alarm);
-//            sendAlarmToUser(user.getEmail(), alarm);
-//        }
-//
-//        schedulerAlarmRepository.saveAll(alarms);
-//    }
+//        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+//        Long userId = userDetails.getUserEntity().getUserId();
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage()));
+
+        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+        log.info("현재 시간: {}", now);
+
+        List<ScheduleEntity> schedules = scheduleRepository.findByCreateUserId(user);
+
+        for (ScheduleEntity schedule : schedules) {
+            if (!isScheduleMatching(schedule, now)) {
+                continue;
+            }
+
+            String eventType = determineEventType(schedule);
+
+            SchedulerAlarmEntity alarm = SchedulerAlarmEntity.builder()
+                    .user(user)
+                    .calendar(schedule.getCalendar())
+                    .schedule(schedule)
+                    .isChecked(false)
+                    .type(eventType)
+                    .createdAt(now)
+                    .updatedAt(now)
+                    .build();
+
+            schedulerAlarmRepository.save(alarm);
+            sendAlarmToUser(user.getEmail(), alarm);
+        }
+    }
+
+    private boolean isScheduleMatching(ScheduleEntity schedule, LocalDateTime now) {
+        LocalDateTime startTime = schedule.getStartTime().withSecond(0).withNano(0);
+
+        if (schedule.getRepeatType() == RepeatType.NONE) {
+            return startTime.equals(now);
+        }
+
+        // 반복 종료일 체크
+        if (schedule.getRepeatEndDate() != null && now.toLocalDate().isAfter(schedule.getRepeatEndDate())) {
+            return false;
+        }
+
+        switch (schedule.getRepeatType()) {
+            case DAILY:
+                return startTime.getHour() == now.getHour() &&
+                        startTime.getMinute() == now.getMinute();
+
+            case WEEKLY:
+                return startTime.getDayOfWeek() == now.getDayOfWeek() &&
+                        startTime.getHour() == now.getHour() &&
+                        startTime.getMinute() == now.getMinute() &&
+                        ChronoUnit.WEEKS.between(startTime.toLocalDate(), now.toLocalDate()) % schedule.getRepeatInterval() == 0;
+
+            case MONTHLY:
+                return startTime.getDayOfMonth() == now.getDayOfMonth() &&
+                        startTime.getHour() == now.getHour() &&
+                        startTime.getMinute() == now.getMinute() &&
+                        ChronoUnit.MONTHS.between(startTime.toLocalDate(), now.toLocalDate()) % schedule.getRepeatInterval() == 0;
+
+            case YEARLY:
+                return startTime.getMonth() == now.getMonth() &&
+                        startTime.getDayOfMonth() == now.getDayOfMonth() &&
+                        startTime.getHour() == now.getHour() &&
+                        startTime.getMinute() == now.getMinute() &&
+                        ChronoUnit.YEARS.between(startTime.toLocalDate(), now.toLocalDate()) % schedule.getRepeatInterval() == 0;
+
+            default:
+                return false;
+        }
+    }
+
 
     private String determineEventType(ScheduleEntity schedule) {
         if (schedule.getStartTime().isEqual(LocalDateTime.now())) {
