@@ -23,12 +23,16 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다. 다시 로그인 해주세요."),
 
     //calendar 에러코드
-    UNAUTHORIZED_CALENDAR(HttpStatus.UNAUTHORIZED, "내 캘린더가 아닙니다."),
+    UNAUTHORIZED_CALENDAR(HttpStatus.UNAUTHORIZED, "권한이 허용된 캘린더가 아닙니다."),
     NOT_FOUND_CALENDAR(HttpStatus.NOT_FOUND, "캘린더를 찾을 수 없습니다."),
     NOT_SHARED_CALENDAR(HttpStatus.BAD_REQUEST, "공용 캘린더가 아닙니다."),
     DUPLICATED_CALENDAR(HttpStatus.CONFLICT, "이미 가입된 캘린더입니다."),
-    INVALID_CALENDAR_TYPE(HttpStatus.BAD_REQUEST, "잘못된 캘린더 ID 입니다."),
+    INVALID_CALENDAR_TYPE(HttpStatus.BAD_REQUEST, "잘못된 캘린더 타입 입니다."),
+    INVALID_CALENDAR_ID(HttpStatus.BAD_REQUEST, "잘못된 캘린더 ID 입니다."),
     DUPLICATED_CALENDAR_NAME(HttpStatus.CONFLICT, "이미 존재하는 캘린더 이름입니다."),
+    CANNOT_REMOVE_SELF(HttpStatus.BAD_REQUEST, "자기 자신은 삭제할 수 없습니다."),
+    CANNOT_REMOVE_OWNER(HttpStatus.BAD_REQUEST, "OWNER는 삭제할 수 없습니다."),
+    NOT_JOINED_CALENDAR(HttpStatus.BAD_REQUEST, "해당 유저는 이 캘린더에 참여하고 있지 않습니다."),
 
     // invite 에러코드
     INVALID_INVITE_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 초대 코드입니다."),

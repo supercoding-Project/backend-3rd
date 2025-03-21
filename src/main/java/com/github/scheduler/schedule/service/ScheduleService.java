@@ -199,7 +199,7 @@ public class ScheduleService {
 
         CalendarEntity calendarEntity = scheduleEntity.getCalendar();
         if (calendarEntity == null || !calendarEntity.getCalendarId().equals(calendarId)) {
-            throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE, ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
+            throw new AppException(ErrorCode.INVALID_CALENDAR_ID, ErrorCode.INVALID_CALENDAR_ID.getMessage());
         }
 
         Long currentUserId = customUserDetails.getUserEntity().getUserId();
@@ -269,7 +269,7 @@ public class ScheduleService {
 
         CalendarEntity calendarEntity = scheduleEntity.getCalendar();
         if (calendarEntity == null || !calendarEntity.getCalendarId().equals(calendarId)) {
-            throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE,ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
+            throw new AppException(ErrorCode.INVALID_CALENDAR_ID,ErrorCode.INVALID_CALENDAR_ID.getMessage());
         }
 
         Long currentUserId = customUserDetails.getUserEntity().getUserId();

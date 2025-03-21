@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -124,6 +125,7 @@ public class AuthController {
     }
 
     @Operation(summary = "회원탈퇴", description = "회원탈퇴 API 입니다.")
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/v1/withdrawal")
     public ResponseEntity<ApiResponse<String>> withdrawalUser(
             @RequestBody Map<String, String> passwordMap,
