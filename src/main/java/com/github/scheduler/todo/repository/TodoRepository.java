@@ -9,5 +9,6 @@ import java.util.List;
 
 @Repository
 public interface TodoRepository extends JpaRepository<TodoEntity, Long> {
-    List<TodoEntity> findByCalendarCalendarIdAndTodoDateBetween(Long calendarId, LocalDate startDate, LocalDate endDate);
+
+    List<TodoEntity> findByCalendarCalendarIdInAndTodoDateBetween(List<Long> calendarId, LocalDate startDate, LocalDate endDate);
 }

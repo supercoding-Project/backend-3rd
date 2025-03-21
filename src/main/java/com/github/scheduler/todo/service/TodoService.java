@@ -44,7 +44,7 @@ public class TodoService {
 
     //할 일 조회
     @Transactional
-    public List<TodoResponseDto> getTodo(CustomUserDetails customUserDetails, String view, String date, Long calendarId) {
+    public List<TodoResponseDto> getTodo(CustomUserDetails customUserDetails, String view, String date, List<Long> calendarId) {
         // 인증된 사용자 확인
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage());
@@ -68,7 +68,7 @@ public class TodoService {
         }
 
         // calendarId를 기준으로 할 일 조회
-        List<TodoEntity> todoEntities = todoRepository.findByCalendarCalendarIdAndTodoDateBetween(calendarId, startDate, endDate);
+        List<TodoEntity> todoEntities = todoRepository.findByCalendarCalendarIdInAndTodoDateBetween(calendarId, startDate, endDate);
         List<TodoResponseDto> todoResponseDto = new ArrayList<>();
         for (TodoEntity todo : todoEntities){
             TodoResponseDto dto = convertTodoEntityToDto(todo);
