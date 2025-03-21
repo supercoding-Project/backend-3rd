@@ -55,4 +55,5 @@ public class    UserEntity {
 
         return this;
     }
+
 }
