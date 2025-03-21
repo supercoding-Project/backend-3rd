@@ -40,15 +40,8 @@ public class    UserEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private UserStatus status;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
 
     @OneToOne(mappedBy = "userEntity", cascade = CascadeType.ALL)
     private UserImageEntity userImageEntity;
