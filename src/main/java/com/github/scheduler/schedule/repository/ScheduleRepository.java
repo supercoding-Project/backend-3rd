@@ -2,7 +2,6 @@ package com.github.scheduler.schedule.repository;
 
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
-import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
