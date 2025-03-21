@@ -33,9 +33,6 @@ public class MyPageService {
         UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USERINFO, ErrorCode.NOT_FOUND_USERINFO.getMessage()));
 
-        if (userEntity.getDeletedAt() != null) {
-            throw new AppException(ErrorCode.DELETE_USERINFO, ErrorCode.DELETE_USERINFO.getMessage());
-        }
         String userImageUrl = getUserProfileImageUrl(userEntity);
 
         UserDto userDto = UserDto.builder()

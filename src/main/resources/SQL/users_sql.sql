@@ -7,9 +7,7 @@ create table users(
                       provider VARCHAR(100),
                       provider_id BIGINT,
                       role VARCHAR(20) NOT NULL,
-                      status VARCHAR(20) NOT NULL,
-                      created_at DATETIME NOT NULL,
-                      deleted_at DATETIME
+                      created_at DATETIME NOT NULL
 );
 
 create table user_image(
