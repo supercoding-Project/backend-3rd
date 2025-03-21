@@ -12,6 +12,7 @@ import com.github.scheduler.schedule.entity.RepeatType;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
 import com.github.scheduler.schedule.event.DeleteScheduleEvent;
+import com.github.scheduler.schedule.event.ScheduleCreatedEvent;
 import com.github.scheduler.schedule.event.UpdateScheduleEvent;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class ScheduleService {
 
     //일정 조회(monthly,weekly,daily)
     @Transactional
-    public List<ScheduleDto> getSchedules(CustomUserDetails customUserDetails, String view, String date, Long calendarId) {
+    public List<ScheduleDto> getSchedules(CustomUserDetails customUserDetails, String view, String date, List<Long> calendarId) {
 
         // 인증된 사용자 확인
         if (customUserDetails == null) {
@@ -68,7 +69,7 @@ public class ScheduleService {
             throw new AppException(ErrorCode.DATE_FORMAT_INCORRECT, ErrorCode.DATE_FORMAT_INCORRECT.getMessage());
         }
 
-        List<ScheduleEntity> scheduleEntities = scheduleRepository.findByCalendarCalendarIdAndScheduleStatusNotAndStartTimeBetween(calendarId, ScheduleStatus.CANCELLED, startDateTime, endDateTime);
+        List<ScheduleEntity> scheduleEntities = scheduleRepository.findByCalendarCalendarIdInAndScheduleStatusNotAndStartTimeBetween(calendarId, ScheduleStatus.CANCELLED, startDateTime, endDateTime);
         List<ScheduleDto> result = new ArrayList<>();
         for (ScheduleEntity schedule : scheduleEntities) {
             ScheduleDto dto = convertScheduleEntityToDto(schedule);
@@ -111,7 +112,6 @@ public class ScheduleService {
                 .build();
     }
 
-
     //일정 등록
     @Transactional
     public List<CreateScheduleDto> createSchedule(CustomUserDetails customUserDetails, CreateScheduleDto createScheduleDto, Long calendarId) {
@@ -148,6 +148,7 @@ public class ScheduleService {
         // 신규 일정 엔티티 생성
         ScheduleEntity scheduleEntity = ScheduleEntity.builder()
                 .createUserId(customUserDetails.getUserEntity())
+                .scheduleId(createScheduleDto.getScheduleId())
                 .title(createScheduleDto.getTitle())
                 .location(createScheduleDto.getLocation())
                 .startTime(createScheduleDto.getStartTime())
@@ -161,25 +162,27 @@ public class ScheduleService {
                 .build();
 
         ScheduleEntity savedScheduleEntity = scheduleRepository.save(scheduleEntity);
+        eventPublisher.publishEvent(new ScheduleCreatedEvent(scheduleEntity.getScheduleId(), "일정을 성공적으로 등록했습니다."));
         CreateScheduleDto saveCreateScheduleDto = convertScheduleEntityToCreateScheduleDto(savedScheduleEntity);
         return Collections.singletonList(saveCreateScheduleDto);
     }
 
-    private CreateScheduleDto convertScheduleEntityToCreateScheduleDto(ScheduleEntity savedEntity) {
+    private CreateScheduleDto convertScheduleEntityToCreateScheduleDto(ScheduleEntity saveScheduleEntity) {
         RepeatScheduleDto repeatScheduleDto = RepeatScheduleDto.builder()
-                .repeatType(savedEntity.getRepeatType().name())
-                .repeatInterval(savedEntity.getRepeatInterval())
-                .repeatEndDate(savedEntity.getRepeatEndDate())
+                .repeatType(saveScheduleEntity.getRepeatType().name())
+                .repeatInterval(saveScheduleEntity.getRepeatInterval())
+                .repeatEndDate(saveScheduleEntity.getRepeatEndDate())
                 .build();
 
         return CreateScheduleDto.builder()
-                .createUserId(savedEntity.getCreateUserId().getUserId())
-                .title(savedEntity.getTitle())
-                .location(savedEntity.getLocation())
-                .startTime(savedEntity.getStartTime())
-                .endTime(savedEntity.getEndTime())
+                .createUserId(saveScheduleEntity.getCreateUserId().getUserId())
+                .scheduleId(saveScheduleEntity.getScheduleId())
+                .title(saveScheduleEntity.getTitle())
+                .location(saveScheduleEntity.getLocation())
+                .startTime(saveScheduleEntity.getStartTime())
+                .endTime(saveScheduleEntity.getEndTime())
                 .repeatSchedule(repeatScheduleDto)
-                .memo(savedEntity.getMemo())
+                .memo(saveScheduleEntity.getMemo())
                 .build();
     }
 
