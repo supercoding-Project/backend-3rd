@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class CreateScheduleDto {
     private Long createUserId;
+    private Long scheduleId;
     private Long calendarId;
     private String title;
     private String location;

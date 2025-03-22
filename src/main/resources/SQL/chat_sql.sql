@@ -20,7 +20,7 @@ CREATE TABLE chat_room_user (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     room_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL, -- 채팅방에 들어온 user_id
-    last_read_message_id BIGINT NOT NULL, -- 마지막으로 읽은 message_id
+    last_read_message_id BIGINT DEFAULT NULL, -- 마지막으로 읽은 message_id
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 참여 시간
     UNIQUE KEY uniq_room_user (room_id, user_id) -- 한 유저의 동일한 방 중복 참여 방지
 );
