@@ -35,7 +35,7 @@ public class TodoController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(name = "view", defaultValue = "MONTHLY") String view,
             @RequestParam(name = "date") String date,
-            @RequestParam(name = "calendarId") Long calendarId) {
+            @RequestParam(name = "calendarId") List<Long> calendarId) {
 
         if (customUserDetails == null) {
             throw new AppException(ErrorCode.NOT_AUTHORIZED_USER, ErrorCode.NOT_AUTHORIZED_USER.getMessage());
