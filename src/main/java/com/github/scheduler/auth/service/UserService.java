@@ -111,7 +111,8 @@ public class UserService {
                 "access_token", accessToken,
                 "refresh_token", refreshToken,
                 "email", userEntity.getEmail(),
-                "username", userEntity.getUsername()
+                "username", userEntity.getUsername(),
+                "profileImage", userEntity.getUserImageEntity().getUrl()
         );
     }
 
