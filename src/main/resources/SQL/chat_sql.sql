@@ -1,7 +1,7 @@
 CREATE TABLE chat_room (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL, -- 채팅방 이름
-    calendar_id BIGINT NOT NULL,
+    calendar_id BIGINT NOT NULL UNIQUE ,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

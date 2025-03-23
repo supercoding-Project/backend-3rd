@@ -22,7 +22,7 @@ public class ChatRoom {
     private String name; //채팅방 이름
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "calender_id" , nullable = false)
+    @JoinColumn(name = "calendar_id" , nullable = false, unique = true)
     private CalendarEntity calendar;
 
     @Column(name = "created_at", updatable = false, insertable = false)
