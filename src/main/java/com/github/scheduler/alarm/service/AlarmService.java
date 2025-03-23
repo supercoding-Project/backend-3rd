@@ -56,7 +56,8 @@ public class AlarmService {
     @Transactional
     @Scheduled(cron = "0 * * * * *")
     public void checkAndSendScheduleAlarms() {
-        Long userId = 1L;  // 테스트
+        try {
+            Long userId = 1L;  // 테스트
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //
 //        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
@@ -67,33 +68,36 @@ public class AlarmService {
 //        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 //        Long userId = userDetails.getUserEntity().getUserId();
 
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage()));
+            UserEntity user = userRepository.findById(userId)
+                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage()));
 
-        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
-        log.info("현재 시간: {}", now);
+            LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+            log.info("현재 시간: {}", now);
 
-        List<ScheduleEntity> schedules = scheduleRepository.findByCreateUserId(user);
+            List<ScheduleEntity> schedules = scheduleRepository.findByCreateUserId(user);
 
-        for (ScheduleEntity schedule : schedules) {
-            if (!isScheduleMatching(schedule, now)) {
-                continue;
+            for (ScheduleEntity schedule : schedules) {
+                if (!isScheduleMatching(schedule, now)) {
+                    continue;
+                }
+
+                String eventType = determineEventType(schedule);
+
+                SchedulerAlarmEntity alarm = SchedulerAlarmEntity.builder()
+                        .user(user)
+                        .calendar(schedule.getCalendar())
+                        .schedule(schedule)
+                        .isChecked(false)
+                        .type(eventType)
+                        .createdAt(now)
+                        .updatedAt(now)
+                        .build();
+
+                schedulerAlarmRepository.save(alarm);
+                sendAlarmToUser(user.getEmail(), alarm);
             }
-
-            String eventType = determineEventType(schedule);
-
-            SchedulerAlarmEntity alarm = SchedulerAlarmEntity.builder()
-                    .user(user)
-                    .calendar(schedule.getCalendar())
-                    .schedule(schedule)
-                    .isChecked(false)
-                    .type(eventType)
-                    .createdAt(now)
-                    .updatedAt(now)
-                    .build();
-
-            schedulerAlarmRepository.save(alarm);
-            sendAlarmToUser(user.getEmail(), alarm);
+        }  catch (AppException ex) {
+            log.error("❌ 알림전송 실패: {}", ex.getMessage());
         }
     }
 
