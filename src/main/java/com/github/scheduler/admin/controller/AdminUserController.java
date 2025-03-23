@@ -2,7 +2,7 @@ package com.github.scheduler.admin.controller;
 
 import com.github.scheduler.admin.dto.user.AdminUserDetailResponseDTO;
 import com.github.scheduler.admin.dto.user.AdminUserResponseDTO;
-import com.github.scheduler.admin.dto.user.AdminUserStatusUpdateDTO;
+import com.github.scheduler.admin.dto.user.AdminUserUpdateDTO;
 import com.github.scheduler.admin.service.AdminUserService;
 import com.github.scheduler.global.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +20,7 @@ public class AdminUserController {
 
     private final AdminUserService adminUserService;
 
-    @Operation(summary = "전체 유저 목록 조회 (탈퇴 처리된 유저 제외)")
+    @Operation(summary = "전체 유저 목록 조회")
     @GetMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<List<AdminUserResponseDTO>>> getAllUsers() {
@@ -37,16 +37,16 @@ public class AdminUserController {
 
     }
 
-    @Operation(summary = "유저 상태 변경 (차단, 활성화)")
-    @PatchMapping("/{id}/status")
+    @Operation(summary = "유저 수정")
+    @PatchMapping("/{id}/update")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<String>> updateUserStatus(@PathVariable long id,@RequestBody AdminUserStatusUpdateDTO dto) {
-        adminUserService.updateUserStatus(id,dto.getStatus());
-        return ResponseEntity.ok(ApiResponse.success("✅유저 상태가 변경되었습니다."));
+    public ResponseEntity<ApiResponse<String>> updateUser(@PathVariable long id,@RequestBody AdminUserUpdateDTO dto) {
+        adminUserService.updateUserStatus(id,dto);
+        return ResponseEntity.ok(ApiResponse.success("✅유저 정보가 수정되었습니다."));
     }
 
 
-    @Operation(summary = "유저 삭제 (= 탈퇴)")
+    @Operation(summary = "유저 삭제")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<String>> deleteUser(@PathVariable long id) {
@@ -54,6 +54,5 @@ public class AdminUserController {
         return ResponseEntity.ok(ApiResponse.success("✅ 유저가 탈퇴되었습니다."));
 
     }
-
 
 }

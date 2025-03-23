@@ -1,7 +1,6 @@
 package com.github.scheduler.admin.dto.user;
 
 import com.github.scheduler.auth.entity.UserEntity;
-import com.github.scheduler.auth.entity.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -14,7 +13,6 @@ public class AdminUserDetailResponseDTO {
     private String email;
     private String phone;
     private String role;
-    private UserStatus status;
 
 
     public static AdminUserDetailResponseDTO from(UserEntity user) {
@@ -24,8 +22,7 @@ public class AdminUserDetailResponseDTO {
                 user.getPassword(),
                 user.getEmail(),
                 user.getPhone(),
-                user.getRole().toString(),
-                user.getStatus()
+                user.getRole().toString()
         );
     }
 }

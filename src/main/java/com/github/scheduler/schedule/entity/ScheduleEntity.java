@@ -95,8 +95,4 @@ public class ScheduleEntity {
         return this.scheduleStatus == ScheduleStatus.DELETED;
     }
 
-    public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
-        this.scheduleStatus = ScheduleStatus.DELETED;
-    }
 }

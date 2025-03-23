@@ -24,7 +24,7 @@ public class AdminScheduleService {
     private final UserRepository userRepository;
 
     public List<ResponseUserScheduleListDTO> getAllUserSchedule() {
-        List<UserEntity> users = userRepository.findByDeletedAtIsNull();
+        List<UserEntity> users = userRepository.findAll();
 
         return users.stream()
                 .map(user -> {
@@ -52,7 +52,7 @@ public class AdminScheduleService {
             throw new RuntimeException("삭제된 일정은 수정할 수 없습니다.");
         }
         // 공용 일정인지 확인
-        if (schedule.getCalendar().getCalendarId() == null) {
+        if (schedule.getCalendar() == null || schedule.getCalendar().getCalendarId() == null) {
             throw new RuntimeException("개인 일정은 관리자 권한으로 수정할 수 없습니다.");
         }
 
@@ -70,13 +70,10 @@ public class AdminScheduleService {
                 .orElseThrow(() -> new RuntimeException("해당 일정이 존재하지 않습니다."));
 
         // 공용 일정인지 확인
-        if (schedule.getCalendar().getCalendarId() == null) {
+        if (schedule.getCalendar() == null || schedule.getCalendar().getCalendarId() == null) {
             throw new RuntimeException("개인 일정은 관리자 권한으로 삭제할 수 없습니다.");
         }
 
-        if (schedule.isDeleted()) {
-            throw new RuntimeException("이미 삭제된 일정입니다.");
-        }
-        schedule.softDelete();  // 내부 매서드로 소프트 딜리트 처리
+        scheduleRepository.delete(schedule);
     }
 }

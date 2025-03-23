@@ -15,6 +15,4 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByUsername(String username);
     boolean existsByEmail(String email);
 
-    // 탈퇴된 유저 필터링
-    List<UserEntity> findByDeletedAtIsNull();
 }

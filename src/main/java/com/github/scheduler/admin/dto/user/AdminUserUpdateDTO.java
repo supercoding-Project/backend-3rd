@@ -1,12 +1,15 @@
 package com.github.scheduler.admin.dto.user;
 
-import com.github.scheduler.auth.entity.UserStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class AdminUserStatusUpdateDTO {
+public class AdminUserUpdateDTO {
+    private String username;
     private String email;
-    private UserStatus status;
+    private String phone;
+    private Boolean resetPassword;
+
 }
