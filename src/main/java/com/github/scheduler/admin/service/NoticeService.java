@@ -5,6 +5,8 @@ import com.github.scheduler.admin.dto.notice.NoticeRequestDTO;
 import com.github.scheduler.admin.dto.notice.NoticeResponseDTO;
 import com.github.scheduler.admin.entity.NoticeEntity;
 import com.github.scheduler.admin.repository.NoticeRepository;
+import com.github.scheduler.global.exception.AppException;
+import com.github.scheduler.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +28,7 @@ public class NoticeService {
 
     public NoticeDetailResponseDTO getNotice(long id) {
         NoticeEntity notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("not found notice"));
+                .orElseThrow(() -> new AppException(ErrorCode.NOTICE_NOT_FOUND,ErrorCode.NOTICE_NOT_FOUND.getMessage()));
         return NoticeDetailResponseDTO.from(notice);
     }
 
@@ -42,14 +44,14 @@ public class NoticeService {
 
     public void updateNotice(long id) {
         NoticeEntity notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("not found notice"));
+                .orElseThrow(() -> new AppException(ErrorCode.NOTICE_NOT_FOUND,ErrorCode.NOTICE_NOT_FOUND.getMessage()));
         notice.update(notice.getTitle(),notice.getContent());
         noticeRepository.save(notice);
     }
 
     public void deleteNotice(long id) {
         if (!noticeRepository.existsById(id)) {
-            throw new RuntimeException("notice not found");
+            throw new AppException(ErrorCode.NOTICE_NOT_FOUND,ErrorCode.NOTICE_NOT_FOUND.getMessage());
         }
         noticeRepository.deleteById(id);
     }

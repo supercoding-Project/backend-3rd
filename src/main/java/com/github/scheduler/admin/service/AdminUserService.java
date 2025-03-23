@@ -5,6 +5,8 @@ import com.github.scheduler.admin.dto.user.AdminUserResponseDTO;
 import com.github.scheduler.admin.dto.user.AdminUserUpdateDTO;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.repository.UserRepository;
+import com.github.scheduler.global.exception.AppException;
+import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.global.util.PasswordUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +33,13 @@ public class AdminUserService {
 
     public AdminUserDetailResponseDTO getUser(long id) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("not found user"));
+                .orElseThrow(() -> new AppException(ErrorCode.ADMIN_USER_NOT_FOUND,ErrorCode.ADMIN_USER_NOT_FOUND.getMessage()));
         return AdminUserDetailResponseDTO.from(user);
     }
 
     public void updateUserStatus(long id, AdminUserUpdateDTO dto) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.ADMIN_USER_NOT_FOUND,ErrorCode.ADMIN_USER_NOT_FOUND.getMessage()));
 
         if (dto.getUsername() !=  null) {
            user.changeUsername(dto.getUsername());
@@ -63,7 +65,7 @@ public class AdminUserService {
     @Transactional
     public void deleteUser(long id) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(() -> new AppException(ErrorCode.ADMIN_USER_NOT_FOUND,ErrorCode.ADMIN_USER_NOT_FOUND.getMessage()));
 
         userRepository.delete(user);
     }

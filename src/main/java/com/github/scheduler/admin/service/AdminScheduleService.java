@@ -5,6 +5,8 @@ import com.github.scheduler.admin.dto.schedule.ScheduleModifyRequestDTO;
 import com.github.scheduler.admin.dto.schedule.ScheduleSimpleDTO;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.repository.UserRepository;
+import com.github.scheduler.global.exception.AppException;
+import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
@@ -36,7 +38,7 @@ public class AdminScheduleService {
 
     public List<ScheduleSimpleDTO> getUserSchedules(Long userId) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("해당 유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.ADMIN_USER_NOT_FOUND,ErrorCode.ADMIN_USER_NOT_FOUND.getMessage()));
 
         List<ScheduleEntity> schedules = scheduleRepository.findByCreateUserIdAndScheduleStatusNot(user, ScheduleStatus.DELETED);
         return schedules.stream()
@@ -46,14 +48,14 @@ public class AdminScheduleService {
 
     public void updateSchedule(long id, ScheduleModifyRequestDTO dto) {
         ScheduleEntity schedule = scheduleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("해당 일정이 존재하지 않습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.SCHEDULE_NOT_FOUND,ErrorCode.SCHEDULE_NOT_FOUND.getMessage()));
 
         if (schedule.isDeleted()) {
-            throw new RuntimeException("삭제된 일정은 수정할 수 없습니다.");
+            throw new AppException(ErrorCode.ADMIN_SCHEDULE_ALREADY_DELETED,ErrorCode.ADMIN_SCHEDULE_ALREADY_DELETED.getMessage());
         }
         // 공용 일정인지 확인
         if (schedule.getCalendar() == null || schedule.getCalendar().getCalendarId() == null) {
-            throw new RuntimeException("개인 일정은 관리자 권한으로 수정할 수 없습니다.");
+            throw new AppException(ErrorCode.ADMIN_SCHEDULE_NOT_PUBLIC,ErrorCode.ADMIN_SCHEDULE_NOT_PUBLIC.getMessage());
         }
 
         schedule.updateScheduleInfo(
@@ -67,11 +69,11 @@ public class AdminScheduleService {
 
     public void deleteSchedule(long id) {
         ScheduleEntity schedule = scheduleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("해당 일정이 존재하지 않습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.SCHEDULE_NOT_FOUND,ErrorCode.SCHEDULE_NOT_FOUND.getMessage()));
 
         // 공용 일정인지 확인
         if (schedule.getCalendar() == null || schedule.getCalendar().getCalendarId() == null) {
-            throw new RuntimeException("개인 일정은 관리자 권한으로 삭제할 수 없습니다.");
+            throw new AppException(ErrorCode.ADMIN_SCHEDULE_NOT_PUBLIC,ErrorCode.ADMIN_SCHEDULE_NOT_PUBLIC.getMessage());
         }
 
         scheduleRepository.delete(schedule);

@@ -6,6 +6,8 @@ import com.github.scheduler.admin.entity.InquiryEntity;
 import com.github.scheduler.admin.repository.InquiryAnswerRepository;
 import com.github.scheduler.admin.repository.InquiryRepository;
 import com.github.scheduler.auth.entity.UserEntity;
+import com.github.scheduler.global.exception.AppException;
+import com.github.scheduler.global.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,10 +23,10 @@ public class InquiryAnswerService {
 
     public void createAnswer(long inquiryId, AnswerRequestDTO dto, UserEntity admin) {
         InquiryEntity inquiry = inquiryRepository.findById(inquiryId)
-                .orElseThrow(() -> new RuntimeException("해당 문의글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.INQUIRY_NOT_FOUND,ErrorCode.INQUIRY_NOT_FOUND.getMessage()));
 
         if (inquiry.isAnswered()) {
-            throw new RuntimeException("이미 답변을 한 문의글 입니다.");
+            throw new AppException(ErrorCode.INQUIRY_ALREADY_ANSWERED,ErrorCode.INQUIRY_ALREADY_ANSWERED.getMessage());
         }
 
         InquiryAnswerEntity answer = InquiryAnswerEntity.builder()
@@ -43,7 +45,7 @@ public class InquiryAnswerService {
 
     public void updateAnswer(long answerId, AnswerRequestDTO dto) {
         InquiryAnswerEntity answer = inquiryAnswerRepository.findById(answerId)
-                .orElseThrow(() -> new RuntimeException("답변을 찾을수가 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.INQUIRY_ANSWER_NOT_FOUND, ErrorCode.INQUIRY_ANSWER_NOT_FOUND.getMessage()));
 
         answer.updateContent(dto.getContent());
         inquiryAnswerRepository.save(answer);
@@ -52,7 +54,7 @@ public class InquiryAnswerService {
     @Transactional
     public void deleteAnswer(long answerId) {
         InquiryAnswerEntity answer = inquiryAnswerRepository.findById(answerId)
-                .orElseThrow(() -> new RuntimeException("답변을 찾을수가 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.INQUIRY_ANSWER_NOT_FOUND, ErrorCode.INQUIRY_ANSWER_NOT_FOUND.getMessage()));
 
         InquiryEntity inquiry = answer.getInquiry();
 

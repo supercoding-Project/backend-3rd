@@ -5,6 +5,8 @@ import com.github.scheduler.admin.entity.InquiryEntity;
 import com.github.scheduler.admin.repository.InquiryRepository;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.repository.UserRepository;
+import com.github.scheduler.global.exception.AppException;
+import com.github.scheduler.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,26 +34,26 @@ public class InquiryService {
 
     public InquiryDetailResponseDTO getInquiry(Long id) {
         InquiryEntity inquiry = inquiryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("해당 문의글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.INQUIRY_NOT_FOUND,ErrorCode.INQUIRY_NOT_FOUND.getMessage()));
 
         if (inquiry.isPrivate()) {
-            throw new RuntimeException("비공개 글입니다. 비밀번호 확인이 필요합니다.");
+            throw new AppException(ErrorCode.INQUIRY_PRIVATE_POST,ErrorCode.INQUIRY_PRIVATE_POST.getMessage());
         }
         return InquiryDetailResponseDTO.from(inquiry);
     }
 
     public Boolean verifyPassword(Long id, PasswordVerifyDTO dto) {
         InquiryEntity inquiry = inquiryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("해당 문의글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.INQUIRY_NOT_FOUND,ErrorCode.INQUIRY_NOT_FOUND.getMessage()));
         if (!inquiry.getPassword().equals(dto.getPassword())) {
-            throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+            throw new AppException(ErrorCode.INQUIRY_PASSWORD_NOT_MATCH,ErrorCode.INQUIRY_PASSWORD_NOT_MATCH.getMessage());
         }
         return true;
     }
 
     public void createInquiry(InquiryRequestDTO dto, Long userId) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.ADMIN_USER_NOT_FOUND, ErrorCode.ADMIN_USER_NOT_FOUND.getMessage()));
 
         InquiryEntity inquiry = InquiryEntity.create(dto, user);
         inquiryRepository.save(inquiry);
@@ -59,9 +61,9 @@ public class InquiryService {
 
     public void updateInquiry(Long id, InquiryModifyRequestDTO dto, Long userId) {
         InquiryEntity inquiry = inquiryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("해당 문의글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.INQUIRY_NOT_FOUND,ErrorCode.INQUIRY_NOT_FOUND.getMessage()));
         if (!inquiry.getUser().getUserId().equals(userId)) {
-            throw new RuntimeException("본인의 문의글만 수정할 수 있습니다.");
+            throw new AppException(ErrorCode.INQUIRY_NOT_OWNER,ErrorCode.INQUIRY_NOT_OWNER.getMessage());
         }
 
         inquiry.update(dto.getTitle(), dto.getContent(), dto.getCategory(), dto.isPrivate(), dto.getPassword());
@@ -70,10 +72,10 @@ public class InquiryService {
 
     public void deleteInquiry(Long id, Long userId) {
         InquiryEntity inquiry = inquiryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("해당 문의글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new AppException(ErrorCode.INQUIRY_NOT_FOUND, ErrorCode.INQUIRY_NOT_FOUND.getMessage()));
 
         if (!inquiry.getUser().getUserId().equals(userId)) {
-            throw new RuntimeException("본인의 문의글만 삭제할 수 있습니다.");
+            throw new AppException(ErrorCode.INQUIRY_NOT_OWNER,ErrorCode.INQUIRY_NOT_OWNER.getMessage());
         }
         inquiryRepository.delete(inquiry);
     }

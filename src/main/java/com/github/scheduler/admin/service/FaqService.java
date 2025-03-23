@@ -6,6 +6,8 @@ import com.github.scheduler.admin.dto.faq.FaqRequestDTO;
 import com.github.scheduler.admin.entity.FaqCategory;
 import com.github.scheduler.admin.entity.FaqEntity;
 import com.github.scheduler.admin.repository.FaqRepository;
+import com.github.scheduler.global.exception.AppException;
+import com.github.scheduler.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +35,7 @@ public class FaqService {
 
     public FaqDetailResponseDTO getFaq(long id) {
         FaqEntity faq =  faqRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("faq not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.FAQ_NOT_FOUND,ErrorCode.FAQ_NOT_FOUND.getMessage()));
 
         return FaqDetailResponseDTO.from(faq);
     }
@@ -49,7 +51,7 @@ public class FaqService {
 
     public void updateFaq(long id, FaqRequestDTO dto) {
         FaqEntity faq = faqRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("faq not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.FAQ_NOT_FOUND,ErrorCode.FAQ_NOT_FOUND.getMessage()));
 
         faq.update(dto.getQuestion(),dto.getAnswer(),dto.getCategory());
         faqRepository.save(faq);
@@ -57,7 +59,7 @@ public class FaqService {
 
     public void deleteFaq(long id) {
         if (!faqRepository.existsById(id)) {
-            throw new RuntimeException("faq not found");
+            throw new AppException(ErrorCode.FAQ_NOT_FOUND,ErrorCode.FAQ_NOT_FOUND.getMessage());
         }
         faqRepository.deleteById(id);
     }
