@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class MyPageController {
 
-    private MyPageService myPageService;
+    private final MyPageService myPageService;
 
     @Operation(summary = "유저 정보 조회", description = "")
     @GetMapping
