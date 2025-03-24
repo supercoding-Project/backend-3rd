@@ -16,6 +16,7 @@ import com.github.scheduler.chat.event.ChatRoomJoinEvent;
 import com.github.scheduler.chat.repository.ChatMessageRepository;
 import com.github.scheduler.chat.repository.ChatRoomRepository;
 import com.github.scheduler.chat.repository.ChatRoomUserRepository;
+import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
@@ -131,9 +132,11 @@ public class ChatService {
     }
 
     // TODO : 읽음 처리 (동시성 처리 필요)
-    // sol.1 : pessimistic lock 데이터를 조회할 때 락을 걸어 순차적으로 처리
     // sol.2 : optimistic lock 충돌 가능성을 가정하고, 최종 커밋 시점에 변경 사항 확인 => 충돌 발생시 재시도 로직 추가
-    // sol.3 : Redis 사용 - 동시성 보장+성능 최적화 => Redis 장애 시 데이터 유실 가능 이중화 고려해야함
+//    public void updateLastReadMessage(Long roomId, LastReadMessage lastReadMessage, CustomUserDetails customUserDetails) {
+//
+//    }
+
     private ChatRoom findRoomById(Long roomId) {
         return chatRoomRepository.findById(roomId)
                 .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
@@ -143,4 +146,6 @@ public class ChatService {
         return userRepository.findById(userId)
                 .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage()));
     }
+
+
 }
