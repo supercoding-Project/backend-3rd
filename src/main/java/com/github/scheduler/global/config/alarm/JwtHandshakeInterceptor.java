@@ -31,23 +31,21 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
         if (request instanceof ServletServerHttpRequest) {
             HttpServletRequest httpRequest = ((ServletServerHttpRequest) request).getServletRequest();
-            String token = httpRequest.getHeader("Authorization");
+            String token = httpRequest.getParameter("token");  // 쿼리 파라미터로 토큰을 받음
 
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7);
-                if (jwtTokenProvider.validateToken(token)) {
-                    String email = jwtTokenProvider.getEmailByToken(token);
-                    CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                String email = jwtTokenProvider.getEmailByToken(token);
+                CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
 
-                    attributes.put("userDetails", userDetails);
-                    log.info("웹소켓 핸드셰이크 성공: 사용자 이메일 - {}", email);
-                    return true;
-                }
+                attributes.put("userDetails", userDetails);
+                log.info("웹소켓 핸드셰이크 성공: 사용자 이메일 - {}", email);
+                return true;
             }
         }
         log.warn("웹소켓 핸드셰이크 실패: 유효한 JWT 토큰이 없음");
         return false;
     }
+
 
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,

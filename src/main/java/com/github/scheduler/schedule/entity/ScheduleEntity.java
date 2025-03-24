@@ -82,6 +82,10 @@ public class ScheduleEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
+    private List<ScheduleMentionEntity> mentions = new ArrayList<>();
+
+
     public void updateScheduleInfo(String title, LocalDateTime startTime, LocalDateTime endTime,
                                    String location,String memo) {
         this.title = title;
