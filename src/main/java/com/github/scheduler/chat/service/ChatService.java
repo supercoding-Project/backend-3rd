@@ -1,16 +1,15 @@
 package com.github.scheduler.chat.service;
 
+import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.repository.UserRepository;
-import com.github.scheduler.auth.service.UserService;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.repository.CalendarRepository;
 import com.github.scheduler.chat.dto.*;
 import com.github.scheduler.chat.entity.ChatMessage;
 import com.github.scheduler.chat.entity.ChatRoom;
 import com.github.scheduler.chat.entity.ChatRoomUser;
-import com.github.scheduler.chat.event.ChatMessageEventListener;
 import com.github.scheduler.chat.event.ChatMessageSendEvent;
 import com.github.scheduler.chat.event.ChatRoomCreateEvent;
 import com.github.scheduler.chat.event.ChatRoomJoinEvent;
@@ -20,12 +19,14 @@ import com.github.scheduler.chat.repository.ChatRoomUserRepository;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class ChatService {
@@ -37,12 +38,18 @@ public class ChatService {
     private final UserRepository userRepository;
 
     @Transactional
-    public ApiResponse<ChatRoomDto> createRoom(ChatRoomCreate roomCreate, SocketIOClient client) {
+    public void createRoom(SocketIOClient client, ChatRoomCreate roomCreate, AckRequest ackSender) {
         // 채팅방 생성
         // get calendar entity
+        log.info("Received createRoom event: name={}, calendarId={}, userId={}",
+                roomCreate.getName(), roomCreate.getCalendarId(), roomCreate.getUserId());
         CalendarEntity calendar = calendarRepository.findById(roomCreate.getCalendarId())
                 .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_CALENDAR,ErrorCode.NOT_FOUND_CALENDAR.getMessage()));
-
+        // 채팅방 중복 체크
+        ChatRoom existRoom = chatRoomRepository.findByCalendar(calendar);
+        if (existRoom != null) {
+            throw new AppException(ErrorCode.DUPLICATED_CHATROOM,ErrorCode.DUPLICATED_CHATROOM.getMessage());
+        }
         ChatRoom chatRoom = ChatRoom.builder()
                 .name(roomCreate.getName())
                 .calendar(calendar)
@@ -57,16 +64,24 @@ public class ChatService {
         // 트랜잭션 후 실행할 event 발생
         eventPublisher.publishEvent(new ChatRoomCreateEvent(chatRoomDto,client));
 
-        return ApiResponse.success(chatRoomDto);
+        //return chatRoomDto;
     }
-
+    public void onDisconnect(SocketIOClient client) {
+        log.info("Client disconnected: {}", client.getSessionId());
+    }
     @Transactional
-    public ApiResponse<ChatRoomUserDto> joinRoom(ChatRoomJoinRequest request, SocketIOClient client) {
+    public void joinRoom(SocketIOClient client, ChatRoomJoinRequest request , AckRequest ackSender) {
         // 채팅방 입장
+        log.info("Received joinRoom event: roomId={}, userId={}", request.getRoomId(), request.getUserId());
         // 채팅방 찾기
         ChatRoom chatRoom = findRoomById(request.getRoomId());
         // user 찾기
         UserEntity user = findUserById(request.getUserId());
+        // 중복 찾기
+        ChatRoomUser existUser = chatRoomUserRepository.findByChatRoomAndUser(chatRoom,user);
+        if (existUser != null) {
+            throw new AppException(ErrorCode.DUPLICATED_CHATROOM_USER,ErrorCode.DUPLICATED_CHATROOM_USER.getMessage());
+        }
         ChatRoomUser chatRoomUser = ChatRoomUser.builder()
                 .chatRoom(chatRoom)
                 .user(user)
@@ -81,11 +96,11 @@ public class ChatService {
                 .build();
 
         eventPublisher.publishEvent(new ChatRoomJoinEvent(chatRoomUserDto,client));
-        return ApiResponse.success(chatRoomUserDto);
+
     }
 
     @Transactional
-    public ApiResponse<ChatMessageDto> sendMessage(SocketIOClient client, ChatMessageRequest request) {
+    public void sendMessage(SocketIOClient client, ChatMessageRequest request, AckRequest ackSender) {
         //채팅방 찾기
         // 채팅방 찾기
         ChatRoom chatRoom = findRoomById(request.getRoomId());
@@ -111,7 +126,6 @@ public class ChatService {
 
         eventPublisher.publishEvent(new ChatMessageSendEvent(chatMessageDto,client));
 
-        return ApiResponse.success(chatMessageDto);
     }
 
     // TODO : 읽음 처리 (동시성 처리 필요)

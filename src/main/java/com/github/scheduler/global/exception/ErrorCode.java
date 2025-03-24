@@ -59,6 +59,8 @@ public enum ErrorCode {
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 유효하지 않습니다."),
 
     // Chatting 에러코드
+    DUPLICATED_CHATROOM(HttpStatus.CONFLICT, "채팅방이 이미 존재합니다."),
+    DUPLICATED_CHATROOM_USER(HttpStatus.CONFLICT, "해당 유저는 이미 채팅방에 참여 했습니다."),
     NOT_FOUND_CHATROOM(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다.");
     private final HttpStatus httpStatus;
     private final String message;
