@@ -74,56 +74,51 @@ public class AlarmService {
         sendAlarm(invitedUser, calendar, null, "member_invited");
     }
 
+    // 기존 checkAndSendScheduleAlarms 메서드는 스케줄러에 의해 주기적으로 실행되도록 설정됨
     @Transactional
-    @Scheduled(cron = "0 * * * * *")
-    public void checkAndSendScheduleAlarms() {
+    //@Scheduled(cron = "0 * * * * *") // 매분마다 실행
+    public void checkAndSendScheduleAlarms(Set<Long> onlineUserIds, SchedulerAlarmDto alarmRequest) {
         try {
-        // 테스트
-        Set<Long> onlineUserIds = new HashSet<>();
-        onlineUserIds.add(1L);
-        //Set<Long> onlineUserIds = sessionManager.getConnectedUsers();  // 현재 웹소켓에 연결된 사용자 목록
+            if (onlineUserIds.isEmpty()) {
+                log.info("🔕 현재 접속 중인 사용자가 없습니다.");
+                return;
+            }
 
-        if (onlineUserIds.isEmpty()) {
-            log.info("🔕 현재 접속 중인 사용자가 없습니다.");
-            return;
-        }
+            LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+            log.info("📅 현재 시간: {}", now);
 
-        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
-        log.info("📅 현재 시간: {}", now);
+            for (Long userId : onlineUserIds) {
+                UserEntity user = userRepository.findById(userId)
+                        .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, "사용자를 찾을 수 없습니다."));
 
-        for (Long userId : onlineUserIds) {
-            UserEntity user = userRepository.findById(userId)
-                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, "사용자를 찾을 수 없습니다."));
+                List<CalendarEntity> calendars = user.getUserCalendars().stream()
+                        .map(UserCalendarEntity::getCalendarEntity)
+                        .toList();
 
-            List<CalendarEntity> calendars = user.getUserCalendars().stream()
-                    .map(UserCalendarEntity::getCalendarEntity)
-                    .toList();
+                for (CalendarEntity calendar : calendars) {
+                    List<ScheduleEntity> schedules = scheduleRepository.findByCalendar(calendar);
 
-            for (CalendarEntity calendar : calendars) {
-                List<ScheduleEntity> schedules = scheduleRepository.findByCalendar(calendar);
+                    for (ScheduleEntity schedule : schedules) {
+                        if (!isScheduleMatching(schedule, now) || isDuplicateAlarm(schedule, now)) {
+                            continue;
+                        }
 
-                for (ScheduleEntity schedule : schedules) {
-                    if (!isScheduleMatching(schedule, now) || isDuplicateAlarm(schedule, now)) {
-                        continue;
-                    }
-
-                    List<UserEntity> recipients = getRecipients(schedule);
-                    for (UserEntity recipient : recipients) {
-                        if (onlineUserIds.contains(recipient.getUserId())) {  // 웹소켓 연결된 사용자만 대상
-                            String eventType = determineEventType(schedule, recipient);
-                            sendAlarm(recipient, schedule.getCalendar(), schedule, eventType);
+                        List<UserEntity> recipients = getRecipients(schedule);
+                        for (UserEntity recipient : recipients) {
+                            if (onlineUserIds.contains(recipient.getUserId())) {
+                                String eventType = determineEventType(schedule, recipient);
+                                sendAlarm(recipient, schedule.getCalendar(), schedule, eventType);
+                            }
                         }
                     }
                 }
             }
-        }
         } catch (AppException ex) {
-            log.error("❌ 알림전송 실패: {}", ex.getMessage());
+            log.error("❌ 알림 전송 실패: {}", ex.getMessage());
         } catch (Exception ex) {
             log.error("알림 전송 중 예기치 못한 오류 발생: {}", ex.getMessage(), ex);
         }
     }
-
     private boolean isScheduleMatching(ScheduleEntity schedule, LocalDateTime now) {
         LocalDateTime startTime = schedule.getStartTime().withSecond(0).withNano(0);
         if (schedule.getRepeatType() == RepeatType.NONE) {
@@ -146,7 +141,6 @@ public class AlarmService {
         }
     }
 
-    // 중복 체크
     private boolean isDuplicateAlarm(ScheduleEntity schedule, LocalDateTime now) {
         return schedulerAlarmRepository.existsByScheduleAndTypeAndCreatedAtAfter(schedule, "event_started", now.minusMinutes(1));
     }
@@ -172,7 +166,6 @@ public class AlarmService {
             return "event_added";
         }
     }
-
 
     private void sendAlarm(UserEntity user, CalendarEntity calendar, ScheduleEntity schedule, String type) {
         SchedulerAlarmEntity alarm = SchedulerAlarmEntity.builder()

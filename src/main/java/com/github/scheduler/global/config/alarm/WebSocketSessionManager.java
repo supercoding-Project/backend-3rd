@@ -1,55 +1,52 @@
 package com.github.scheduler.global.config.alarm;
 
+import com.corundumstudio.socketio.SocketIOClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
 public class WebSocketSessionManager {
-    // 사용자 ID와 WebSocketSession을 매핑
-    private final Map<Long, WebSocketSession> userSessionMap = new ConcurrentHashMap<>();
-    // 세션 ID와 사용자 ID를 매핑
-    private final Map<String, Long> sessionIdUserMap = new ConcurrentHashMap<>();
+    private final Map<Long, WebSocketSession> userSessions = new HashMap<>();
+    private final Map<String, Long> sessionUserMap = new HashMap<>();  // String으로 세션 ID 관리
 
-    // 사용자의 WebSocket 세션 추가
+    // 사용자 세션 추가
     public void addSession(Long userId, WebSocketSession session) {
-        userSessionMap.put(userId, session);  // 사용자 ID -> 세션
-        sessionIdUserMap.put(session.getId(), userId);  // 세션 ID -> 사용자 ID
-        System.out.println("세션 추가됨: 사용자 ID - " + userId + ", 세션 ID - " + session.getId());
+        userSessions.put(userId, session);
+        sessionUserMap.put(session.getId(), userId);  // 세션 ID를 사용하여 매핑
+        log.info("세션 추가: 사용자 ID - {}", userId);
     }
 
-    // 사용자 ID에 해당하는 세션을 제거
+    // 사용자 세션 제거
     public void removeSession(Long userId) {
-        WebSocketSession session = userSessionMap.remove(userId);  // 세션을 먼저 제거
-        if (session != null) {
-            sessionIdUserMap.remove(session.getId());  // 세션 ID에서 사용자 ID 제거
+        WebSocketSession removedSession = userSessions.remove(userId);
+        if (removedSession != null) {
+            sessionUserMap.remove(removedSession.getId());  // 세션 ID로 제거
+            log.info("세션 제거: 사용자 ID - {}", userId);
+        } else {
+            log.warn("세션을 찾을 수 없습니다: 사용자 ID - {}", userId);
         }
-        System.out.println("세션 제거됨: 사용자 ID - " + userId);
     }
 
-    // 세션 ID에 해당하는 사용자 ID를 반환
-    public Long getUserId(String sessionId) {
-        return sessionIdUserMap.get(sessionId);  // 세션 ID -> 사용자 ID 조회
-    }
-
-    // 연결된 모든 사용자 ID 반환
-    public Set<Long> getConnectedUsers() {
-        return userSessionMap.keySet();
-    }
-
-    // 특정 사용자 ID에 대한 WebSocketSession 반환
+    // 사용자의 세션 조회
     public WebSocketSession getSession(Long userId) {
-        return userSessionMap.get(userId);
+        return userSessions.get(userId);
     }
 
-    // 세션 존재 여부 확인
-    public boolean isSessionActive(Long userId) {
-        return userSessionMap.containsKey(userId);
+    // 연결된 사용자 목록 가져오기
+    public Set<Long> getConnectedUsers() {
+        return userSessions.keySet();
+    }
+
+    // SocketIOClient에서 세션 ID를 가져와 사용자 ID 조회
+    public Long getUserId(SocketIOClient client) {
+        String sessionId = client.getSessionId().toString();  // 세션 ID는 String 타입
+        return sessionUserMap.get(sessionId);  // 세션 ID로 사용자 ID 조회
     }
 }

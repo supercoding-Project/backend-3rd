@@ -32,12 +32,10 @@ public class WebSocketEventListener {
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 
-        // sessionAttributes가 null일 수 있으므로 null 체크 후 초기화
         if (headerAccessor.getSessionAttributes() == null) {
-            headerAccessor.setSessionAttributes(new HashMap<>());  // 빈 Map으로 초기화
+            headerAccessor.setSessionAttributes(new HashMap<>());
         }
 
-        // 이후 사용자 정보 가져오기
         CustomUserDetails userDetails = (CustomUserDetails) headerAccessor.getSessionAttributes().get("userDetails");
 
         if (userDetails != null) {
@@ -50,7 +48,6 @@ public class WebSocketEventListener {
             log.warn("❌ 사용자 정보가 없습니다.");
         }
     }
-
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
