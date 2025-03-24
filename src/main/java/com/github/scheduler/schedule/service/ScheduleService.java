@@ -148,7 +148,7 @@ public class ScheduleService {
         // 신규 일정 엔티티 생성
         ScheduleEntity scheduleEntity = ScheduleEntity.builder()
                 .createUserId(customUserDetails.getUserEntity())
-                .scheduleId(createScheduleDto.getScheduleId())
+                //.scheduleId(createScheduleDto.getScheduleId())
                 .title(createScheduleDto.getTitle())
                 .location(createScheduleDto.getLocation())
                 .startTime(createScheduleDto.getStartTime())

@@ -78,4 +78,7 @@ public class ScheduleEntity {
     @Column(name = "version")
     private Long version;
 
+    @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
+    private List<ScheduleMentionEntity> mentions = new ArrayList<>();
+
 }

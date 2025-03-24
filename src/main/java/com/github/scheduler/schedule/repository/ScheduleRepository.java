@@ -1,6 +1,7 @@
 package com.github.scheduler.schedule.repository;
 
 import com.github.scheduler.auth.entity.UserEntity;
+import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
@@ -31,4 +32,5 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
 
     List<ScheduleEntity> findByCalendarCalendarIdInAndScheduleStatusNotAndStartTimeBetween(List<Long> calendarId, ScheduleStatus scheduleStatus, LocalDateTime startDateTime, LocalDateTime endDateTime);
 
+    List<ScheduleEntity> findByCalendar(CalendarEntity calendar);
 }
