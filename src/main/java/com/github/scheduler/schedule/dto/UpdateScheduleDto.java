@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -18,4 +19,5 @@ public class UpdateScheduleDto {
     private LocalDateTime endTime;
     private RepeatScheduleDto repeatSchedule;
     private String memo;
+    private List<Long> mentionUserIds;
 }

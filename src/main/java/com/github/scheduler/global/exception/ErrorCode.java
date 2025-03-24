@@ -47,7 +47,7 @@ public enum ErrorCode {
     TODO_NOT_FOUND(HttpStatus.NOT_FOUND,"할 일을 찾을 수 없습니다."),
     NOT_UPDATE(HttpStatus.CONFLICT, "다른 사용자가 동시에 수정 중입니다."),
     NOT_DELETE(HttpStatus.CONFLICT, "다른 사용자가 동시에 삭제 중입니다."),
-
+    INVALID_MENTION_USER(HttpStatus.BAD_REQUEST, "해당 사용자는 캘린더의 구성원이 아닙니다."),
 
 
     // MyPage 에러코드
@@ -62,7 +62,25 @@ public enum ErrorCode {
     // Chatting 에러코드
     DUPLICATED_CHATROOM(HttpStatus.CONFLICT, "채팅방이 이미 존재합니다."),
     DUPLICATED_CHATROOM_USER(HttpStatus.CONFLICT, "해당 유저는 이미 채팅방에 참여 했습니다."),
-    NOT_FOUND_CHATROOM(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다.");
+    NOT_FOUND_CHATROOM(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
+
+    // admin 에러코드
+    ADMIN_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "관리자 권한이 없습니다."),
+    ADMIN_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저를 찾을 수 없습니다."),
+    ADMIN_USER_UPDATE_FAIL(HttpStatus.BAD_REQUEST, "유저 정보를 수정할 수 없습니다."),
+    ADMIN_USER_DELETE_FAIL(HttpStatus.BAD_REQUEST, "유저 정보를 삭제할 수 없습니다."),
+    ADMIN_SCHEDULE_ALREADY_DELETED(HttpStatus.CONFLICT, "이미 삭제된 일정입니다."),
+    ADMIN_SCHEDULE_NOT_PUBLIC(HttpStatus.BAD_REQUEST, "공용 일정만 수정/삭제할 수 있습니다."),
+    INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 문의글을 찾을 수 없습니다."),
+    INQUIRY_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
+    INQUIRY_PRIVATE_POST(HttpStatus.FORBIDDEN, "비공개 글입니다. 비밀번호 확인이 필요합니다."),
+    INQUIRY_NOT_OWNER(HttpStatus.FORBIDDEN, "본인의 문의글만 수정/삭제할 수 있습니다."),
+    INQUIRY_ALREADY_ANSWERED(HttpStatus.CONFLICT, "이미 답변된 문의글입니다."),
+    INQUIRY_ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "답변을 찾을 수 없습니다."),
+    NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 공지사항을 찾을 수 없습니다."),
+    FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 FAQ를 찾을 수 없습니다.");
+
+
     private final HttpStatus httpStatus;
     private final String message;
 }

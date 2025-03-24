@@ -48,7 +48,7 @@ public class ChatController {
         server.addEventListener("joinRoom", ChatRoomJoinRequest.class,chatService::joinRoom);
         // 메시지 이벤트 리스너
         // todo
-        //server.addEventListener("sendMessage", ChatMessageRequest.class,chatService::sendMessage);
+        server.addEventListener("sendMessage", ChatMessageRequest.class,chatService::sendMessage);
     }
 
     @PreDestroy

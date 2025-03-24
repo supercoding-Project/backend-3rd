@@ -6,6 +6,8 @@ import com.github.scheduler.auth.entity.UserEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter
@@ -13,6 +15,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "chat_message")
 public class ChatMessage {
     @Id
@@ -33,6 +37,7 @@ public class ChatMessage {
     @Column(name = "file_url")
     private String fileURL;
 
+    @CreatedDate
     @Column(name = "created_at", updatable = false, insertable = false)
     private LocalDateTime createdAt;
 
