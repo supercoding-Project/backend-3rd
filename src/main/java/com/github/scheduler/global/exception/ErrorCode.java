@@ -47,7 +47,7 @@ public enum ErrorCode {
     TODO_NOT_FOUND(HttpStatus.NOT_FOUND,"할 일을 찾을 수 없습니다."),
     NOT_UPDATE(HttpStatus.CONFLICT, "다른 사용자가 동시에 수정 중입니다."),
     NOT_DELETE(HttpStatus.CONFLICT, "다른 사용자가 동시에 삭제 중입니다."),
-
+    INVALID_MENTION_USER(HttpStatus.BAD_REQUEST, "해당 사용자는 캘린더의 구성원이 아닙니다."),
 
 
     // MyPage 에러코드
