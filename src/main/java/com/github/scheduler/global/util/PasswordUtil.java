@@ -1,8 +1,11 @@
 package com.github.scheduler.global.util;
 
+import org.springframework.stereotype.Component;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+@Component
 public class PasswordUtil {
 
     // 비밀번호 암호화 (SHA-256)
