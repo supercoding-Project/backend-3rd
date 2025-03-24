@@ -1,8 +1,11 @@
 package com.github.scheduler.global.config.auth;
 import com.github.scheduler.global.config.auth.filter.JwtAuthenticationFilter;
+import com.github.scheduler.oauth2.handler.OAuth2LoginSuccessHandler;
+import com.github.scheduler.oauth2.service.PrincipalOauth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,6 +28,7 @@ import org.springframework.web.filter.CorsFilter;
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
@@ -32,6 +36,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final PrincipalOauth2UserService principalOauth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -64,6 +70,17 @@ public class SecurityConfig {
                             response.setContentType("application/json;charset=UTF-8");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                        })
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+                                .userService(principalOauth2UserService))
+                        .successHandler(oAuth2LoginSuccessHandler)
+                        .failureHandler((request, response, exception) -> {
+                            log.error("❌ OAuth2 실패: {}", exception.getMessage(), exception);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("{\"error\": \"OAuth2 Authentication Failed\"}");
                         })
                 )
                 .logout((logout) -> logout
