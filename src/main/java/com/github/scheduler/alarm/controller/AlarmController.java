@@ -1,58 +1,46 @@
 package com.github.scheduler.alarm.controller;
 
+import com.corundumstudio.socketio.SocketIOClient;
 import com.github.scheduler.alarm.dto.SchedulerAlarmDto;
 import com.github.scheduler.alarm.service.AlarmService;
+import com.github.scheduler.global.config.alarm.WebSocketSessionManager;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.mypage.dto.UserDto;
 import com.github.scheduler.mypage.service.MyPageService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Set;
+
 @Slf4j
-@RestController
-@RequestMapping("/api/alarm")
-//@RequestMapping("/api/v1/alarm")
+@Controller
 @RequiredArgsConstructor
 public class AlarmController {
-
-    private final AlarmService alarmService;
-
-//    @Operation(summary = "스케줄 알람 정보 조회", description = "")
-//    @GetMapping("/schedule/{email}")
-//    public ResponseEntity<ApiResponse<String>> myScheduleAlarm(
-//             //@AuthenticationPrincipal CustomUserDetails customUserDetails,
-//             @PathVariable("email") String email) {
-//            Long userId = 1L;
-////        if (customUserDetails == null) {
-////            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"인증되지 않은 사용자입니다.");
-////        }
-////        if (!customUserDetails.getUserEntity().getEmail().equals(email)) {
-////            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인의 정보만 조회할 수 있습니다.");
-////        }
-//        alarmService.checkAndSendScheduleAlarms(userId);
-//        return ResponseEntity.ok(ApiResponse.success("일정이 생성되었습니다."));
-//    }
-//    @Operation(summary = "Q&A 알람 정보 조회", description = "")
-//    @GetMapping("/qna")
-//    public void myQnAlarm() {
 //
-//    }
-//    @Operation(summary = "공지사항 알람 정보 조회", description = "")
-//    @GetMapping("/notice")
-//    public void myNoticeAlarm() {
-
-//    }
-//    @Operation(summary = "읽지않은 알람 정보 조회", description = "")
-//    @GetMapping
-//    public void myAlarmCount() {
+//    private final WebSocketSessionManager sessionManager;
+//    private final AlarmService alarmService;
 //
+//    @MessageMapping("/sendAlarm")
+//    public void sendAlarm(@Payload SchedulerAlarmDto alarmRequest, SocketIOClient client) {
+//        Long userId = sessionManager.getUserId(client);  // 클라이언트로부터 사용자 ID 추출
+//        if (userId == null) {
+//            log.warn("연결된 사용자 ID를 찾을 수 없습니다.");
+//            return;
+//        }
+//
+//        Set<Long> onlineUserIds = sessionManager.getConnectedUsers();  // 접속된 사용자 목록 가져오기
+//        alarmService.checkAndSendScheduleAlarms(onlineUserIds, alarmRequest);
 //    }
 }
