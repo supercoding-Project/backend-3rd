@@ -28,4 +28,6 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
     List<ScheduleEntity> findByCalendarCalendarIdInAndScheduleStatusNotAndStartTimeBetween(List<Long> calendarId, ScheduleStatus scheduleStatus, LocalDateTime startDateTime, LocalDateTime endDateTime);
 
     List<ScheduleEntity> findByCalendar(CalendarEntity calendar);
+
+    List<ScheduleEntity> findByCreateUserIdAndScheduleStatusNot(UserEntity createUserId, ScheduleStatus scheduleStatus);
 }
