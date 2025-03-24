@@ -37,15 +37,6 @@ public class AdminUserController {
 
     }
 
-    @Operation(summary = "유저 수정")
-    @PatchMapping("/{id}/update")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<String>> updateUser(@PathVariable long id,@RequestBody AdminUserUpdateDTO dto) {
-        adminUserService.updateUserStatus(id,dto);
-        return ResponseEntity.ok(ApiResponse.success("✅유저 정보가 수정되었습니다."));
-    }
-
-
     @Operation(summary = "유저 삭제")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")

@@ -37,31 +37,6 @@ public class AdminUserService {
         return AdminUserDetailResponseDTO.from(user);
     }
 
-    public void updateUserStatus(long id, AdminUserUpdateDTO dto) {
-        UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.ADMIN_USER_NOT_FOUND,ErrorCode.ADMIN_USER_NOT_FOUND.getMessage()));
-
-        if (dto.getUsername() !=  null) {
-           user.changeUsername(dto.getUsername());
-        }
-
-        if (dto.getEmail() !=  null) {
-            user.changeEmail(dto.getEmail());
-        }
-
-        if (dto.getPhone() !=  null) {
-            user.changePhone(dto.getPhone());
-        }
-
-        if (Boolean.TRUE.equals(dto.getResetPassword())) {
-            String tempPassword = "reset1234!"; // 고정값
-            log.info("✅[임시 비밀번호 발급] : " + tempPassword);
-            user.changePassword(passwordUtil.encrypt(tempPassword));
-        }
-
-        userRepository.save(user);
-    }
-
     @Transactional
     public void deleteUser(long id) {
         UserEntity user = userRepository.findById(id)

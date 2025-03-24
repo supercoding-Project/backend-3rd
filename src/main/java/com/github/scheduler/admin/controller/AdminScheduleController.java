@@ -36,22 +36,4 @@ public class AdminScheduleController {
         return ResponseEntity.ok(ApiResponse.success(schedules));
     }
 
-    @Operation(summary = "일정 수정 (공용 일정)")
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<String>> modifySchedule(@PathVariable long id,
-                                                              @RequestBody ScheduleModifyRequestDTO dto) {
-        adminScheduleService.updateSchedule(id,dto);
-        return ResponseEntity.ok(ApiResponse.success("✅일정이 수정되었습니다."));
-    }
-
-
-    @Operation(summary = "일정 삭제")
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<String>> deleteSchedule(@PathVariable long id) {
-        adminScheduleService.deleteSchedule(id);
-        return ResponseEntity.ok(ApiResponse.success("✅일정이 삭제되었습니다."));
-    }
-
 }

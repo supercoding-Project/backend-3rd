@@ -46,36 +46,5 @@ public class AdminScheduleService {
                 .collect(Collectors.toList());
     }
 
-    public void updateSchedule(long id, ScheduleModifyRequestDTO dto) {
-        ScheduleEntity schedule = scheduleRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.SCHEDULE_NOT_FOUND,ErrorCode.SCHEDULE_NOT_FOUND.getMessage()));
 
-        if (schedule.isDeleted()) {
-            throw new AppException(ErrorCode.ADMIN_SCHEDULE_ALREADY_DELETED,ErrorCode.ADMIN_SCHEDULE_ALREADY_DELETED.getMessage());
-        }
-        // 공용 일정인지 확인
-        if (schedule.getCalendar() == null || schedule.getCalendar().getCalendarId() == null) {
-            throw new AppException(ErrorCode.ADMIN_SCHEDULE_NOT_PUBLIC,ErrorCode.ADMIN_SCHEDULE_NOT_PUBLIC.getMessage());
-        }
-
-        schedule.updateScheduleInfo(
-                dto.getTitle(),
-                dto.getStartTime(),
-                dto.getEndTime(),
-                dto.getLocation(),
-                dto.getMemo()
-        );
-    }
-
-    public void deleteSchedule(long id) {
-        ScheduleEntity schedule = scheduleRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.SCHEDULE_NOT_FOUND,ErrorCode.SCHEDULE_NOT_FOUND.getMessage()));
-
-        // 공용 일정인지 확인
-        if (schedule.getCalendar() == null || schedule.getCalendar().getCalendarId() == null) {
-            throw new AppException(ErrorCode.ADMIN_SCHEDULE_NOT_PUBLIC,ErrorCode.ADMIN_SCHEDULE_NOT_PUBLIC.getMessage());
-        }
-
-        scheduleRepository.delete(schedule);
-    }
 }
