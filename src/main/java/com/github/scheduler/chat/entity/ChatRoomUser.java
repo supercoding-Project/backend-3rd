@@ -7,6 +7,7 @@ import com.github.scheduler.auth.entity.UserEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Getter
@@ -14,6 +15,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 @Table(name = "chat_room_user")
 public class ChatRoomUser {
     @Id
@@ -31,6 +33,7 @@ public class ChatRoomUser {
     @Column(name = "last_read_message_id")
     private Long lastReadMessageId;
 
+    @CreatedDate
     @Column(name = "joined_at", updatable = false, insertable = false)
     private LocalDateTime joinedAt;
 }
