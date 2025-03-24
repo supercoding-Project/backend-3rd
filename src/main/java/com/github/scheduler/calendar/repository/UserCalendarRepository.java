@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserCalendarRepository extends JpaRepository<UserCalendarEntity, Long> {
@@ -21,4 +22,12 @@ public interface UserCalendarRepository extends JpaRepository<UserCalendarEntity
     List<UserCalendarEntity> findByCalendarEntityCalendarId(Long calendarId);
 
     boolean existsByCalendarEntityCalendarIdAndUserEntityUserId(Long calendarId, Long currentUserId);
+
+    void deleteByUserEntity(UserEntity userEntity);
+
+    void deleteByUserEntityAndCalendarEntity(UserEntity userEntity, CalendarEntity calendar);
+
+    void deleteByCalendarEntity(CalendarEntity calendar);
+
+    Optional<UserCalendarEntity> findByUserEntityAndCalendarEntity(UserEntity targetUser, CalendarEntity calendar);
 }

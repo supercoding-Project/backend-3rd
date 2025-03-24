@@ -44,7 +44,7 @@ dependencies {
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
 	// swagger
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0' // 최신 버전 사용
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
 	// jwt
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -68,7 +68,7 @@ dependencies {
 	implementation 'org.redisson:redisson-spring-boot-starter:3.45.0'
 
 	//socket.io
-	implementation 'com.corundumstudio.socketio:netty-socketio:1.7.18'
+	implementation 'com.corundumstudio.socketio:netty-socketio:2.0.3'
 	//implementation 'io.github.ozzyozbourne:spring-boot-starter-socket.io'
 
     // e-mail
@@ -82,6 +82,10 @@ dependencies {
 
 	// aws s3
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+	// localDateTime
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
 }
 
 tasks.named('test') {

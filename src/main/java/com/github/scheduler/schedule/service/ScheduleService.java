@@ -1,5 +1,7 @@
 package com.github.scheduler.schedule.service;
 
+import com.github.scheduler.auth.entity.UserEntity;
+import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.entity.CalendarType;
 import com.github.scheduler.calendar.repository.CalendarRepository;
@@ -10,10 +12,12 @@ import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.schedule.dto.*;
 import com.github.scheduler.schedule.entity.RepeatType;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
+import com.github.scheduler.schedule.entity.ScheduleMentionEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
 import com.github.scheduler.schedule.event.DeleteScheduleEvent;
 import com.github.scheduler.schedule.event.ScheduleCreatedEvent;
 import com.github.scheduler.schedule.event.UpdateScheduleEvent;
+import com.github.scheduler.schedule.repository.ScheduleMentionRepository;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +38,8 @@ public class ScheduleService {
     private final CalendarRepository calendarRepository;
     private final UserCalendarRepository userCalendarRepository;
     private final ScheduleRepository scheduleRepository;
+    private final ScheduleMentionRepository scheduleMentionRepository;
+    private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
 
 
@@ -133,6 +139,21 @@ public class ScheduleService {
             throw new AppException(ErrorCode.TODO_NOT_SUPPORTED, ErrorCode.TODO_NOT_SUPPORTED.getMessage());
         }
 
+        //공유 캘린더의 경우에 캘린더에 포함되어있는 멤버인지 확인
+        if (calendarEntity.getCalendarType().equals(CalendarType.SHARED)) {
+            List<Long> calendarMemberIds = userCalendarRepository.findByCalendarEntityCalendarId(calendarEntity.getCalendarId())
+                    .stream()
+                    .map(userCalendarEntity -> userCalendarEntity.getUserEntity().getUserId())
+                    .toList();
+            if (createScheduleDto.getMentionUserIds() != null && !createScheduleDto.getMentionUserIds().isEmpty()) {
+                for (Long mentionUserId : createScheduleDto.getMentionUserIds()) {
+                    if (!calendarMemberIds.contains(mentionUserId)) {
+                        throw new AppException(ErrorCode.INVALID_MENTION_USER, ErrorCode.INVALID_MENTION_USER.getMessage());
+                    }
+                }
+            }
+        }
+
         // 반복 설정 처리
         RepeatType repeatType = RepeatType.NONE;
         int repeatInterval = 0;
@@ -162,6 +183,19 @@ public class ScheduleService {
                 .build();
 
         ScheduleEntity savedScheduleEntity = scheduleRepository.save(scheduleEntity);
+
+        if (createScheduleDto.getMentionUserIds() != null && !createScheduleDto.getMentionUserIds().isEmpty()) {
+            for (Long mentionUserId : createScheduleDto.getMentionUserIds()) {
+                UserEntity mentionUser = userRepository.findById(mentionUserId)
+                        .orElseThrow(() -> new AppException(ErrorCode.INVALID_MENTION_USER, ErrorCode.INVALID_MENTION_USER.getMessage()));
+                ScheduleMentionEntity scheduleMentionEntity = ScheduleMentionEntity.builder()
+                        .schedule(savedScheduleEntity)
+                        .user(mentionUser)
+                        .build();
+                scheduleMentionRepository.save(scheduleMentionEntity);
+            }
+        }
+
         eventPublisher.publishEvent(new ScheduleCreatedEvent(scheduleEntity.getScheduleId(), "일정을 성공적으로 등록했습니다."));
         CreateScheduleDto saveCreateScheduleDto = convertScheduleEntityToCreateScheduleDto(savedScheduleEntity);
         return Collections.singletonList(saveCreateScheduleDto);
@@ -199,7 +233,7 @@ public class ScheduleService {
 
         CalendarEntity calendarEntity = scheduleEntity.getCalendar();
         if (calendarEntity == null || !calendarEntity.getCalendarId().equals(calendarId)) {
-            throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE, ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
+            throw new AppException(ErrorCode.INVALID_CALENDAR_ID, ErrorCode.INVALID_CALENDAR_ID.getMessage());
         }
 
         Long currentUserId = customUserDetails.getUserEntity().getUserId();
@@ -230,6 +264,20 @@ public class ScheduleService {
             scheduleEntity.setRepeatInterval(updateScheduleDto.getRepeatSchedule().getRepeatInterval());
             scheduleEntity.setRepeatEndDate(updateScheduleDto.getRepeatSchedule().getRepeatEndDate());
         }
+
+        scheduleMentionRepository.deleteBySchedule_ScheduleId(scheduleId);
+        if (updateScheduleDto.getMentionUserIds() != null && !updateScheduleDto.getMentionUserIds().isEmpty()) {
+            for (Long mentionUserId : updateScheduleDto.getMentionUserIds()) {
+                UserEntity mentionUser = userRepository.findById(mentionUserId)
+                        .orElseThrow(() -> new AppException(ErrorCode.INVALID_MENTION_USER, ErrorCode.INVALID_MENTION_USER.getMessage()));
+                ScheduleMentionEntity scheduleMentionEntity = ScheduleMentionEntity.builder()
+                        .schedule(scheduleEntity)
+                        .user(mentionUser)
+                        .build();
+                scheduleMentionRepository.save(scheduleMentionEntity);
+            }
+        }
+
         try {
             scheduleRepository.flush();
             eventPublisher.publishEvent(new UpdateScheduleEvent(scheduleId, "일정이 성공적으로 수정되었습니다.", true));
@@ -269,7 +317,7 @@ public class ScheduleService {
 
         CalendarEntity calendarEntity = scheduleEntity.getCalendar();
         if (calendarEntity == null || !calendarEntity.getCalendarId().equals(calendarId)) {
-            throw new AppException(ErrorCode.INVALID_CALENDAR_TYPE,ErrorCode.INVALID_CALENDAR_TYPE.getMessage());
+            throw new AppException(ErrorCode.INVALID_CALENDAR_ID,ErrorCode.INVALID_CALENDAR_ID.getMessage());
         }
 
         Long currentUserId = customUserDetails.getUserEntity().getUserId();
@@ -285,6 +333,7 @@ public class ScheduleService {
         }
 
         try {
+            scheduleMentionRepository.deleteBySchedule_ScheduleId(scheduleId);
             scheduleEntity.setScheduleStatus(ScheduleStatus.CANCELLED);
             scheduleRepository.save(scheduleEntity);
             scheduleRepository.flush();
@@ -300,4 +349,5 @@ public class ScheduleService {
             throw new AppException(ErrorCode.NOT_DELETE, ErrorCode.NOT_DELETE.getMessage());
         }
     }
+
 }

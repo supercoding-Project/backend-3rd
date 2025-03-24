@@ -13,5 +13,4 @@ public class ChatMessageRequest {
     private Long sendUserId;
     private String message;
     private String fileURL;
-    private LocalDateTime createdAt;
 }

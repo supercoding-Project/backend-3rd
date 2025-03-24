@@ -7,9 +7,7 @@ create table users(
                       provider VARCHAR(100),
                       provider_id BIGINT,
                       role VARCHAR(20) NOT NULL,
-                      status VARCHAR(20) NOT NULL,
-                      created_at DATETIME NOT NULL,
-                      deleted_at DATETIME
+                      created_at DATETIME NOT NULL
 );
 
 create table user_image(
@@ -23,6 +21,6 @@ CREATE TABLE refresh_token (
                                refresh_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                user_id BIGINT NOT NULL UNIQUE,
                                refresh_token VARCHAR(255) NOT NULL UNIQUE,
-                               expiration TIMESTAMP NOT NULL,
+                                expiration TIMESTAMP NOT NULL,
                                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
