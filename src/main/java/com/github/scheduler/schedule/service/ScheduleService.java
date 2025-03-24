@@ -139,7 +139,7 @@ public class ScheduleService {
             throw new AppException(ErrorCode.TODO_NOT_SUPPORTED, ErrorCode.TODO_NOT_SUPPORTED.getMessage());
         }
 
-        //공유 캘린더의 경우에 캘린더에 포함되어있는 멤버인지 확인
+        //공유 캘린더의 경우에 사용자 맨션 시 캘린더에 포함되어있는 멤버인지 확인
         if (calendarEntity.getCalendarType().equals(CalendarType.SHARED)) {
             List<Long> calendarMemberIds = userCalendarRepository.findByCalendarEntityCalendarId(calendarEntity.getCalendarId())
                     .stream()
