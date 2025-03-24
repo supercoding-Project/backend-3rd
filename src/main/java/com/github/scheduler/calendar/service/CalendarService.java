@@ -91,7 +91,7 @@ public class CalendarService {
                 .calendarDescription(calendarEntity.getCalendarDescription())
                 .calendarType(calendarEntity.getCalendarType().getType())
                 .calendarRole(userCalendarEntity.getRole().getType())
-                .createdAt(calendarEntity.getCreatedAt())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 

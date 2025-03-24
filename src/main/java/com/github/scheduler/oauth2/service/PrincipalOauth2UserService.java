@@ -13,6 +13,7 @@ import com.github.scheduler.oauth2.info.NaverUserInfo;
 import com.github.scheduler.oauth2.info.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -48,7 +49,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
         if (provider.equals("google")) {
             oAuth2UserInfo = new GoogleUserInfo(oauth2User.getAttributes());
-            log.info("Google OAuth attributes: {}", oauth2User.getAttributes());
         } else if (provider.equals("kakao")) {
             oAuth2UserInfo = new KakaoUserInfo(oauth2User.getAttributes());
         } else if (provider.equals("naver")) {
@@ -80,46 +80,25 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
             UserEntity savedUser = userRepository.save(oauthUser);
 
+            UserEntity managedUser = userRepository.findByUserId(savedUser.getUserId())
+                    .orElseThrow(() -> new RuntimeException("유저 저장 실패 후 조회 불가"));
+
             try {
                 String imageUrl = oAuth2UserInfo.getImage();
                 boolean isDefaultImage = (imageUrl == null || imageUrl.isBlank());
-                MultipartFile image = isDefaultImage
-                        ? userImageService.getDefaultProfileImage()
-                        : convertUrlToMultipartFile(imageUrl);
 
-                userImageService.uploadUserImage(savedUser, image, isDefaultImage);
+                if (isDefaultImage) {
+                    MultipartFile image = userImageService.getDefaultProfileImage();
+                    userImageService.uploadUserImage(managedUser, image, true);
+                } else {
+                    userImageService.uploadUserImageFromUrl(managedUser, imageUrl);
+                }
+
             } catch (Exception e) {
                 log.error("프로필 이미지 저장 실패", e);
             }
         }
 
         return new CustomUserDetails(oauthUser, oauth2User.getAttributes());
-    }
-
-    private MultipartFile convertUrlToMultipartFile(String imageUrl) throws IOException {
-        log.info("imageUrl: {}", imageUrl);
-
-        // URL에서 프로토콜 부분 "https://" 제거
-        String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);  // URL 마지막 부분 가져오기
-
-        // URL에서 ':' 등의 특수 문자는 파일명에 사용할 수 없으므로, '_'로 변경
-        fileName = fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
-
-        // 저장할 디렉토리 경로
-        String directory = "src/main/resources/static/uploads/profiles/";
-
-        // 전체 파일 경로
-        Path path = Paths.get(directory, fileName);
-
-        // URL에서 이미지를 읽어온 후 파일로 변환
-        URL url = new URL(imageUrl);
-        try (InputStream inputStream = url.openStream(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            BufferedImage urlImage = ImageIO.read(inputStream);
-            ImageIO.write(urlImage, "jpg", bos);  // 이미지를 byte 배열로 변환
-            byte[] byteArray = bos.toByteArray();
-
-            // MultipartFile로 변환하여 반환
-            return new MultipartFileConverter(byteArray, path.toString());
-        }
     }
 }

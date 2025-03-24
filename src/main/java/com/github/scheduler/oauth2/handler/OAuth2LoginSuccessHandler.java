@@ -3,7 +3,9 @@ package com.github.scheduler.oauth2.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.entity.UserImageEntity;
+import com.github.scheduler.auth.repository.RefreshTokenRepository;
 import com.github.scheduler.auth.repository.UserRepository;
+import com.github.scheduler.auth.service.UserService;
 import com.github.scheduler.global.config.auth.JwtTokenProvider;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import jakarta.servlet.ServletException;
@@ -27,20 +29,28 @@ import java.util.Optional;
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserService userService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        String accessToken = jwtTokenProvider.createAccessToken(customUserDetails.getUsername());
-        String refreshToken = jwtTokenProvider.createRefreshToken(customUserDetails.getUsername());
-        UserEntity userEntity = userRepository.findByEmail(authentication.getName())
+        String email = customUserDetails.getUsername();
+
+        String accessToken = jwtTokenProvider.createAccessToken(email);
+        String refreshToken = jwtTokenProvider.createRefreshToken(email);
+
+        UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자 정보를 찾을 수 없습니다."));
 
-        log.info("OAuth2 로그인 성공: {}", authentication.getName());
+        log.info("OAuth2 로그인 성공: {}", email);
         log.info("accessToken: {}", accessToken);
         log.info("refreshToken: {}", refreshToken);
+
+        // 리프레시 토큰 저장
+        userService.addRefresh(email, refreshToken, 60 * 24 * 7); // 7일 (단위: 분)
 
         // 응답 헤더 및 쿠키 설정
         response.addHeader("Authorization", accessToken);
@@ -59,7 +69,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         result.put("token_type", "Bearer");
         result.put("access_token", accessToken);
         result.put("refresh_token", refreshToken);
-        result.put("email", authentication.getName());
+        result.put("email", email);
         result.put("username", userEntity.getUsername());
         result.put("profileImage", Optional.ofNullable(userEntity.getUserImageEntity())
                 .map(UserImageEntity::getUrl)
