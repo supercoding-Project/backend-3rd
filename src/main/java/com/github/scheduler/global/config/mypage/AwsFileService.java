@@ -31,7 +31,7 @@ public class AwsFileService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    private String IMAGE_DIR = "profiles/";  // 프로필 이미지 저장 폴더
+    private final String IMAGE_DIR = "profiles/";  // 프로필 이미지 저장 폴더
 
     // 파일 저장 메서드
     public String savePhoto(MultipartFile multipartFile, Long memberId) {
@@ -61,6 +61,7 @@ public class AwsFileService {
         try {
             amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, uploadFile)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
+            System.out.println(uploadFile);
             return amazonS3Client.getUrl(bucket, fileName).toString();
         } catch (Exception e) {
             throw new AppException(ErrorCode.NOT_SAVE_FILE,ErrorCode.NOT_SAVE_FILE.getMessage());

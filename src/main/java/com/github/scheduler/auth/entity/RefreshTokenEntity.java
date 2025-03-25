@@ -20,7 +20,7 @@ public class RefreshTokenEntity {
     @Column(name = "refresh_id")
     private Long tokenId;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private UserEntity userEntity;
 

@@ -3,6 +3,7 @@ package com.github.scheduler.schedule.dto;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,4 +20,5 @@ public class CreateScheduleDto {
     private LocalDateTime endTime;
     private RepeatScheduleDto repeatSchedule;
     private String memo;
+    private List<Long> mentionUserIds;
 }

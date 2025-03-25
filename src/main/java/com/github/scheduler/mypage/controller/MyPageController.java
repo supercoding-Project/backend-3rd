@@ -38,7 +38,7 @@ public class MyPageController {
 
     @Operation(summary = "유저 정보 수정", description = "")
     @PutMapping
-    public ResponseEntity<ApiResponse<Void>> updateMyPageUser(
+    public ResponseEntity<ApiResponse<UserDto>> updateMyPageUser(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestBody UserDto userDto) {
 
@@ -48,13 +48,13 @@ public class MyPageController {
         }
 
         String email = customUserDetails.getUsername();
-        myPageService.updateUserInfo(email, userDto);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        UserDto updatedUserDto = myPageService.updateUserInfo(email, userDto);
+        return ResponseEntity.ok(ApiResponse.success(updatedUserDto));
     }
 
     @Operation(summary = "프로필 이미지 수정", description = "")
     @PutMapping("/profileImage")
-    public ResponseEntity<ApiResponse<Void>> updateUserProfileImage(
+    public ResponseEntity<ApiResponse<UserDto>> updateUserProfileImage(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam("file") MultipartFile file) {
 
@@ -64,13 +64,13 @@ public class MyPageController {
         }
 
         String email = customUserDetails.getUsername();
-        myPageService.updateUserProfileImage(email, file);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        UserDto updatedUserDto = myPageService.updateUserProfileImage(email, file);
+        return ResponseEntity.ok(ApiResponse.success(updatedUserDto)); // 수정된 UserDto 반환
     }
 
     @Operation(summary = "비밀번호 수정", description = "")
     @PutMapping("/password")
-    public ResponseEntity<ApiResponse<Void>> updateUserPassword(
+    public ResponseEntity<ApiResponse<UserDto>> updateUserPassword(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam("oldPassword") String oldPassword,
             @RequestParam("newPassword") String newPassword) {
@@ -81,7 +81,7 @@ public class MyPageController {
         }
 
         String email = customUserDetails.getUsername();
-        myPageService.updateUserPassword(email, oldPassword, newPassword);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        UserDto updatedUserDto = myPageService.updateUserPassword(email, oldPassword, newPassword);
+        return ResponseEntity.ok(ApiResponse.success(updatedUserDto)); // 수정된 UserDto 반환
     }
 }

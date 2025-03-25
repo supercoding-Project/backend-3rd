@@ -67,15 +67,11 @@ public class UserService {
             isDefaultImage = true;
         }
 
-        userImageService.uploadUserImage(userEntity, image, isDefaultImage);
+        UserEntity savedUser = userRepository.save(userEntity);
 
-        try {
-            userRepository.save(userEntity);
-        } catch (DataIntegrityViolationException e) {
-            throw new AppException(ErrorCode.USERNAME_DUPLICATED, "이미 존재하는 이메일 또는 유저네임입니다.");
-        }
+        userImageService.uploadUserImage(savedUser, image, isDefaultImage);
 
-        log.info("✅ 회원가입 완료 - 이메일: {}", userEntity.getEmail());
+        log.info("✅ 회원가입 완료 - 이메일: {}", savedUser.getEmail());
     }
 
     // 이메일 체크
@@ -203,7 +199,7 @@ public class UserService {
     }
 
     // 리프레시 토큰 추가
-    protected void addRefresh(String email, String refreshToken, int expiredMinute) {
+    public void addRefresh(String email, String refreshToken, int expiredMinute) {
         LocalDateTime expirationDate = LocalDateTime.now().plusMinutes(expiredMinute);
 
         UserEntity userEntity = userRepository.findByEmail(email)
