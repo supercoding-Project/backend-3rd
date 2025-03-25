@@ -129,7 +129,6 @@ public class CalendarService {
             UserEntity invitedUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, "초대받은 사용자를 찾을 수 없습니다."));
 
-            alarmService.sendInvitationAlarms(calendar, invitedUser);
         }
 
         return ApiResponse.success("초대 코드가 이메일로 전송되었습니다.");
@@ -166,11 +165,10 @@ public class CalendarService {
 
         log.info("유저 캘린더 추가 완료 - 사용자: {}, 캘린더 ID: {}", email, calendarEntity.getCalendarId());
 
-        // 초대 알림 전송 (캘린더의 기존 멤버들에게 알림 전송)
-        alarmService.sendInvitationAlarms(calendarEntity, userEntity);
-
         // 이벤트 발행 (예: 소켓 알림 등 후처리 리스너 연결 가능)
         eventPublisher.publishEvent(new CalendarJoinedEvent(calendarEntity, userEntity));
+
+        alarmService.sendInvitationAlarms(calendarEntity, userEntity);
     }
 
     // 유저 캘린더 조회
