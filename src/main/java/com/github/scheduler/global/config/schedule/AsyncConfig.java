@@ -23,15 +23,15 @@ public class AsyncConfig  {
         return executor;
     }
 
-    @Bean(name = "todoCreateExecutor")
+    @Bean(name = "TodoCreateExecutor")
     public Executor todoCreateExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        // 단일 스레드로 구성: 오직 하나의 스레드만 작업을 수행함.
         executor.setCorePoolSize(1);
         executor.setMaxPoolSize(1);
         executor.setQueueCapacity(1000);
-        executor.setThreadNamePrefix("todoCreateExecutor-");
+        executor.setThreadNamePrefix("TodoCreateExecutor-");
         executor.initialize();
         return executor;
     }
+
 }

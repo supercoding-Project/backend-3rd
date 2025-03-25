@@ -1,7 +1,6 @@
 package com.github.scheduler.admin.controller;
 
 import com.github.scheduler.admin.dto.schedule.ResponseUserScheduleListDTO;
-import com.github.scheduler.admin.dto.schedule.ScheduleModifyRequestDTO;
 import com.github.scheduler.admin.dto.schedule.ScheduleSimpleDTO;
 import com.github.scheduler.admin.service.AdminScheduleService;
 import com.github.scheduler.global.dto.ApiResponse;

@@ -6,28 +6,18 @@ import com.github.scheduler.auth.repository.UserImageRepository;
 import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.auth.service.UserImageService;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
-import com.github.scheduler.global.util.MultipartFileConverter;
 import com.github.scheduler.oauth2.info.GoogleUserInfo;
 import com.github.scheduler.oauth2.info.KakaoUserInfo;
 import com.github.scheduler.oauth2.info.NaverUserInfo;
 import com.github.scheduler.oauth2.info.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -37,7 +27,6 @@ import java.util.Optional;
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    private final UserImageRepository userImageRepository;
     private final UserImageService userImageService;
 
     @Override

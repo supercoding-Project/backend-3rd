@@ -10,12 +10,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -31,7 +31,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<List<ScheduleDto>>> getSchedules(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(name = "view", defaultValue = "MONTHLY") String view,
-            @RequestParam(name = "date") String date,
+            @RequestParam(name = "date", required = false) String date,
             @RequestParam(name = "calendarId") List<Long> calendarId) {
 
         if (customUserDetails == null) {
@@ -40,6 +40,10 @@ public class ScheduleController {
 
         if (calendarId == null) {
             throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
+        }
+
+        if (date == null || date.isEmpty()) {
+            date = LocalDate.now().toString();
         }
 
         List<ScheduleDto> schedule = scheduleService.getSchedules(customUserDetails, view, date, calendarId);
