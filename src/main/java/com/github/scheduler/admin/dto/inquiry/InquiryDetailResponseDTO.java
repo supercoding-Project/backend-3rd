@@ -1,5 +1,6 @@
 package com.github.scheduler.admin.dto.inquiry;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.github.scheduler.admin.dto.inquiryAnswer.InquiryAnswerDTO;
 import com.github.scheduler.admin.entity.InquiryEntity;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,7 @@ public class InquiryDetailResponseDTO {
     private String content;
     private boolean isPrivate;
     private String category;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime createdAt;
     private boolean answered;
 

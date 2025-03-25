@@ -47,8 +47,8 @@ public class NoticeController {
     @Operation(summary = "공지사항 수정")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<String>> modifyNotice(@PathVariable long id) {
-        noticeService.updateNotice(id);
+    public ResponseEntity<ApiResponse<String>> modifyNotice(@PathVariable long id, @RequestBody NoticeRequestDTO dto) {
+        noticeService.updateNotice(id,dto);
         return ResponseEntity.ok(ApiResponse.success("✅공지사항이 수정되었습니다."));
     }
 

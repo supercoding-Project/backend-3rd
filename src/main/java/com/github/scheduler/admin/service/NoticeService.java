@@ -42,10 +42,10 @@ public class NoticeService {
     }
 
 
-    public void updateNotice(long id) {
+    public void updateNotice(long id , NoticeRequestDTO dto) {
         NoticeEntity notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.NOTICE_NOT_FOUND,ErrorCode.NOTICE_NOT_FOUND.getMessage()));
-        notice.update(notice.getTitle(),notice.getContent());
+        notice.update(dto.getTitle(),dto.getContent());
         noticeRepository.save(notice);
     }
 
