@@ -10,6 +10,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UpdateScheduleEvent {
     private Long ScheduleId;
-    private String massage;
+    private String message;
     private boolean success;
 }

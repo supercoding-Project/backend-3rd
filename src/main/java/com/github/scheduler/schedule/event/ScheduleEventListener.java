@@ -13,14 +13,14 @@ public class ScheduleEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleScheduleUpdateSuccess(UpdateScheduleEvent event) {
         if (event.isSuccess()) {
-            log.info("Schedule {} updated successfully. Message: {}", event.getScheduleId(), event.getMassage());
+            log.info("Schedule {} updated successfully. Message: {}", event.getScheduleId(), event.getMessage());
         }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handleScheduleUpdateFail(UpdateScheduleEvent event) {
         if (!event.isSuccess()) {
-            log.warn("Schedule {} update failed. Message: {}", event.getScheduleId(), event.getMassage());
+            log.warn("Schedule {} update failed. Message: {}", event.getScheduleId(), event.getMessage());
         }
     }
 
