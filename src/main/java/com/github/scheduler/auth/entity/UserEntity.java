@@ -1,8 +1,11 @@
 package com.github.scheduler.auth.entity;
 
+import com.github.scheduler.calendar.entity.UserCalendarEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @Getter
@@ -49,10 +52,30 @@ public class    UserEntity {
     @OneToOne(mappedBy = "userEntity", cascade = CascadeType.ALL)
     private RefreshTokenEntity refreshToken;
 
+    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserCalendarEntity> userCalendars = new ArrayList<>();
+
     public UserEntity update(String username, UserImageEntity userImageEntity) {
         this.username = username;
         this.userImageEntity = userImageEntity;
 
         return this;
     }
+
+    public void changeUsername(String username) {
+        this.username = username;
+    }
+
+    public void changeEmail(String email) {
+        this.email = email;
+    }
+
+    public void changePhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
 }

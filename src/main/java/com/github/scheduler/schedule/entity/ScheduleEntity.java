@@ -81,4 +81,25 @@ public class ScheduleEntity {
     @Column(name = "version")
     private Long version;
 
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
+    private List<ScheduleMentionEntity> mentions = new ArrayList<>();
+
+
+    public void updateScheduleInfo(String title, LocalDateTime startTime, LocalDateTime endTime,
+                                   String location,String memo) {
+        this.title = title;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.location = location;
+        this.memo = memo;
+    }
+
+    public boolean isDeleted() {
+        return this.scheduleStatus == ScheduleStatus.DELETED;
+    }
+
 }
