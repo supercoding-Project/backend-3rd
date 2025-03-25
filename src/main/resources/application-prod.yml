@@ -12,5 +12,18 @@ spring:
     password: ${PROD_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: http://ec2-54-180-153-214.ap-northeast-2.compute.amazonaws.com:8080/login/oauth2/code/google
+
+          kakao:
+            redirect-uri: http://ec2-54-180-153-214.ap-northeast-2.compute.amazonaws.com:8080/login/oauth2/code/kakao
+
+          naver:
+            redirect-uri: http://ec2-54-180-153-214.ap-northeast-2.compute.amazonaws.com:8080/login/oauth2/code/naver
+
 logging:
   config: classpath:logback-spring-prod.xml
