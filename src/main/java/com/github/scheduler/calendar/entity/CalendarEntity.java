@@ -35,6 +35,9 @@ public class CalendarEntity {
     @Enumerated(EnumType.STRING)
     private CalendarType calendarType;
 
+    @Column(name = "calendar_color")
+    private String calendarColor;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
