@@ -41,7 +41,6 @@ public class CalendarService {
     private final UserCalendarRepository userCalendarRepository;
     private final InviteCodeService inviteCodeService;
     private final EmailService emailService;
-    private final StringRedisTemplate redisTemplate;
     private final ApplicationEventPublisher eventPublisher;
     private final AlarmService alarmService;
 
@@ -126,13 +125,13 @@ public class CalendarService {
         emailService.sendInviteEmails(emailList, inviteCode, calendarId);
         log.info("초대 코드 {}가 {}명에게 이메일 전송", inviteCode, emailList.size());
 
-        // 초대받은 각 사용자에게 알림 전송
-        for (String email : emailList) {
-            UserEntity invitedUser = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, "초대받은 사용자를 찾을 수 없습니다."));
-
-            alarmService.sendInvitationAlarms(calendar, invitedUser);
-        }
+//        // 초대받은 각 사용자에게 알림 전송
+//        for (String email : emailList) {
+//            UserEntity invitedUser = userRepository.findByEmail(email)
+//                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, "초대받은 사용자를 찾을 수 없습니다."));
+//
+//            alarmService.sendInvitationAlarms(calendar, invitedUser);
+//        }
 
         return ApiResponse.success("초대 코드가 이메일로 전송되었습니다.");
     }
@@ -168,8 +167,8 @@ public class CalendarService {
 
         log.info("유저 캘린더 추가 완료 - 사용자: {}, 캘린더 ID: {}", email, calendarEntity.getCalendarId());
 
-        // 초대 알림 전송 (캘린더의 기존 멤버들에게 알림 전송)
-        alarmService.sendInvitationAlarms(calendarEntity, userEntity);
+//        // 초대 알림 전송 (캘린더의 기존 멤버들에게 알림 전송)
+//        alarmService.sendInvitationAlarms(calendarEntity, userEntity);
 
         // 이벤트 발행 (예: 소켓 알림 등 후처리 리스너 연결 가능)
         eventPublisher.publishEvent(new CalendarJoinedEvent(calendarEntity, userEntity));
@@ -296,5 +295,49 @@ public class CalendarService {
                         uc.getRole()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    // 캘린더 삭제(내가 owner인 경우만 가능)
+    @Transactional
+    public void deleteCalendar(Long calendarId, String email) {
+        CalendarEntity calendar = calendarRepository.findByCalendarId(calendarId).orElseThrow(
+                () -> new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage())
+        );
+
+        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(
+                () -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage())
+        );
+
+        if (!calendar.getOwner().getUserId().equals(userEntity.getUserId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED_CALENDAR, ErrorCode.UNAUTHORIZED_CALENDAR.getMessage());
+        }
+
+        userCalendarRepository.deleteAllByCalendarEntityCalendarId(calendarId);
+        calendarRepository.deleteById(calendarId);
+    }
+
+    // 캘린더에서 탈퇴하기
+    @Transactional
+    public void leaveCalendar(Long calendarId, String email) {
+        CalendarEntity calendarEntity = calendarRepository.findById(calendarId).orElseThrow(
+                () -> new AppException(ErrorCode.NOT_FOUND_CALENDAR, "존재하지 않는 캘린더")
+        );
+
+        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(
+                () -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage())
+        );
+
+        if (!userCalendarRepository.existsByUserEntityAndCalendarEntity(userEntity, calendarEntity)) {
+            throw new AppException(ErrorCode.NOT_JOINED_CALENDAR, "해당 캘린더에 가입되어 있지 않습니다.");
+        }
+
+        // 내가 OWNER인 경우: 소유권 이전 처리
+        if (calendarEntity.getOwner().equals(userEntity)) {
+            transferCalendarOwnerships(userEntity);
+            return;
+        }
+
+        // 일반 참여자일 경우: 그냥 탈퇴 처리
+        userCalendarRepository.deleteByUserEntityAndCalendarEntity(userEntity, calendarEntity);
     }
 }
