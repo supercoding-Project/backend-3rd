@@ -1,9 +1,11 @@
 package com.github.scheduler.chat.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @ToString
 @Table(name = "chat_room")
+@EntityListeners(AuditingEntityListener.class)
 public class ChatRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

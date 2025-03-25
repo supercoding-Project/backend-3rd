@@ -8,6 +8,7 @@ import com.github.scheduler.auth.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter
@@ -17,6 +18,7 @@ import org.springframework.data.annotation.CreatedDate;
 @Builder
 @ToString
 @Table(name = "chat_room_user")
+@EntityListeners(AuditingEntityListener.class)
 public class ChatRoomUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

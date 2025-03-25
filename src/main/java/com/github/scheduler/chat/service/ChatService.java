@@ -38,35 +38,6 @@ public class ChatService {
     private final ApplicationEventPublisher eventPublisher;
     private final UserRepository userRepository;
 
-    @Transactional
-    public void createRoom(SocketIOClient client, ChatRoomCreate roomCreate, AckRequest ackSender) {
-        // 채팅방 생성
-        // get calendar entity
-        log.info("Received createRoom event: name={}, calendarId={}, userId={}",
-                roomCreate.getName(), roomCreate.getCalendarId(), roomCreate.getUserId());
-        CalendarEntity calendar = calendarRepository.findById(roomCreate.getCalendarId())
-                .orElseThrow( () -> new AppException(ErrorCode.NOT_FOUND_CALENDAR,ErrorCode.NOT_FOUND_CALENDAR.getMessage()));
-        // 채팅방 중복 체크
-        ChatRoom existRoom = chatRoomRepository.findByCalendar(calendar);
-        if (existRoom != null) {
-            throw new AppException(ErrorCode.DUPLICATED_CHATROOM,ErrorCode.DUPLICATED_CHATROOM.getMessage());
-        }
-        ChatRoom chatRoom = ChatRoom.builder()
-                .name(roomCreate.getName())
-                .calendar(calendar)
-                .build();
-        ChatRoom savedRoom = chatRoomRepository.save(chatRoom);
-        ChatRoomDto chatRoomDto = ChatRoomDto.builder()
-                .chatRoomId(savedRoom.getId())
-                .roomName(savedRoom.getName())
-                .calendarId(savedRoom.getCalendar().getCalendarId())
-                .createdAt(savedRoom.getCreatedAt())
-                .build();
-        // 트랜잭션 후 실행할 event 발생
-        eventPublisher.publishEvent(new ChatRoomCreateEvent(chatRoomDto,client));
-
-        //return chatRoomDto;
-    }
     public void onDisconnect(SocketIOClient client) {
         log.info("Client disconnected: {}", client.getSessionId());
     }
@@ -90,7 +61,9 @@ public class ChatService {
                 .build();
         ChatRoomUser chatUser = chatRoomUserRepository.save(chatRoomUser);
         ChatRoomUserDto chatRoomUserDto = ChatRoomUserDto.builder()
-                .chatRoom(chatUser.getChatRoom())
+                .roomId(chatUser.getChatRoom().getId())
+                .roomName(chatUser.getChatRoom().getName())
+                .calendarId(chatUser.getChatRoom().getCalendar().getCalendarId())
                 .userId(chatUser.getUser().getUserId())
                 .lastReadMessageId(chatUser.getLastReadMessageId())
                 .joinedAt(chatUser.getJoinedAt())
@@ -148,4 +121,6 @@ public class ChatService {
     }
 
 
+    public void updateLastReadMessage(Long roomId, LastReadMessage lastReadMessage, CustomUserDetails customUserDetails) {
+    }
 }
