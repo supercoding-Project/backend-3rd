@@ -81,10 +81,6 @@ public class ScheduleEntity {
     @Column(name = "version")
     private Long version;
 
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
     @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
     private List<ScheduleMentionEntity> mentions = new ArrayList<>();
 

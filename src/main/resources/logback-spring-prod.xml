@@ -16,7 +16,7 @@
         </encoder>
     </appender>
     <!-- 루트 로거 설정   -->
-    <root level="info">
+    <root level="error">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="FILE" />
     </root>
