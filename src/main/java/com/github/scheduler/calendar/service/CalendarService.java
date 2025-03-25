@@ -1,5 +1,6 @@
 package com.github.scheduler.calendar.service;
 
+import com.github.scheduler.alarm.service.AlarmService;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.calendar.dto.CalendarMemberDeleteRequestDto;
@@ -42,6 +43,7 @@ public class CalendarService {
     private final EmailService emailService;
     private final StringRedisTemplate redisTemplate;
     private final ApplicationEventPublisher eventPublisher;
+    private final AlarmService alarmService;
 
     // 캘린더 생성
     @Transactional
@@ -73,6 +75,7 @@ public class CalendarService {
                 .owner(userEntity)
                 .calendarDescription(calendarRequestDto.getCalendarDescription())
                 .calendarType(calendarType)
+                .calendarColor(calendarRequestDto.getCalendarColor())
                 .createdAt(now)
                 .build();
         calendarRepository.save(calendarEntity);
@@ -91,7 +94,8 @@ public class CalendarService {
                 .calendarDescription(calendarEntity.getCalendarDescription())
                 .calendarType(calendarEntity.getCalendarType().getType())
                 .calendarRole(userCalendarEntity.getRole().getType())
-                .createdAt(calendarEntity.getCreatedAt())
+                .calendarColor(calendarEntity.getCalendarColor())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -121,6 +125,14 @@ public class CalendarService {
 
         emailService.sendInviteEmails(emailList, inviteCode, calendarId);
         log.info("초대 코드 {}가 {}명에게 이메일 전송", inviteCode, emailList.size());
+
+        // 초대받은 각 사용자에게 알림 전송
+        for (String email : emailList) {
+            UserEntity invitedUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, "초대받은 사용자를 찾을 수 없습니다."));
+
+            alarmService.sendInvitationAlarms(calendar, invitedUser);
+        }
 
         return ApiResponse.success("초대 코드가 이메일로 전송되었습니다.");
     }
@@ -156,6 +168,9 @@ public class CalendarService {
 
         log.info("유저 캘린더 추가 완료 - 사용자: {}, 캘린더 ID: {}", email, calendarEntity.getCalendarId());
 
+        // 초대 알림 전송 (캘린더의 기존 멤버들에게 알림 전송)
+        alarmService.sendInvitationAlarms(calendarEntity, userEntity);
+
         // 이벤트 발행 (예: 소켓 알림 등 후처리 리스너 연결 가능)
         eventPublisher.publishEvent(new CalendarJoinedEvent(calendarEntity, userEntity));
     }
@@ -175,6 +190,7 @@ public class CalendarService {
                         uc.getCalendarEntity().getCalendarType().getType(),
                         uc.getRole().getType(),
                         uc.getCalendarEntity().getCalendarDescription(),
+                        uc.getCalendarEntity().getCalendarColor(),
                         uc.getCalendarEntity().getCreatedAt()
                 ))
                 .collect(Collectors.toList());
