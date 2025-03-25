@@ -14,7 +14,7 @@ CREATE TABLE schedules(
                           schedule_status ENUM('SCHEDULED', 'COMPLETED', 'CANCELLED') DEFAULT 'SCHEDULED',
                           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                          deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                          FOREIGN KEY (create_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-                          FOREIGN KEY (calendar_id) REFERENCES calendar(calendar_id) ON DELETE CASCADE
+                          deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+#                           FOREIGN KEY (create_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+#                           FOREIGN KEY (calendar_id) REFERENCES calendar(calendar_id) ON DELETE CASCADE
 );

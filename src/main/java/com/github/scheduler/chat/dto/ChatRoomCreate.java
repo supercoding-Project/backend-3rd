@@ -12,9 +12,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ChatRoomCreate {
 
-    @Schema(description = "채팅방 이름", example = "슈퍼코딩 BE")
-    private String name;
-
     @Schema(description = "캘린더 ID", example = "1")
     private Long calendarId;
 
