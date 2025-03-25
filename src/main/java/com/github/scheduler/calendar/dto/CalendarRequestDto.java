@@ -18,4 +18,7 @@ public class CalendarRequestDto {
 
     @NotBlank(message = "캘린더 타입은 필수 입력값입니다.")
     private String calendarType;
+
+    @NotBlank(message = "색상을 선택해주세요.")
+    private String calendarColor;
 }

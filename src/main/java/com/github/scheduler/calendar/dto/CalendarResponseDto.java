@@ -20,6 +20,7 @@ public class CalendarResponseDto {
     private String calendarDescription;
     private String calendarType;
     private String calendarRole;
+    private String calendarColor;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }

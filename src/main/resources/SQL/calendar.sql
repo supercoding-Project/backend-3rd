@@ -4,6 +4,7 @@ CREATE TABLE calendar (
                           owner_id BIGINT NOT NULL, -- 캘린더 생성자
                           calendar_description varchar(255),
                           calendar_type VARCHAR(20), -- 캘린더 타입 설정(개인, 공용, 할일)
+                          calendar_color VARCHAR(50),
                           created_at DATETIME,
                           FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

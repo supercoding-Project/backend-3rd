@@ -75,6 +75,7 @@ public class CalendarService {
                 .owner(userEntity)
                 .calendarDescription(calendarRequestDto.getCalendarDescription())
                 .calendarType(calendarType)
+                .calendarColor(calendarRequestDto.getCalendarColor())
                 .createdAt(now)
                 .build();
         calendarRepository.save(calendarEntity);
@@ -93,6 +94,7 @@ public class CalendarService {
                 .calendarDescription(calendarEntity.getCalendarDescription())
                 .calendarType(calendarEntity.getCalendarType().getType())
                 .calendarRole(userCalendarEntity.getRole().getType())
+                .calendarColor(calendarEntity.getCalendarColor())
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -188,6 +190,7 @@ public class CalendarService {
                         uc.getCalendarEntity().getCalendarType().getType(),
                         uc.getRole().getType(),
                         uc.getCalendarEntity().getCalendarDescription(),
+                        uc.getCalendarEntity().getCalendarColor(),
                         uc.getCalendarEntity().getCreatedAt()
                 ))
                 .collect(Collectors.toList());
