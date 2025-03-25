@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -28,19 +30,6 @@ import java.util.Set;
 @Controller
 @RequiredArgsConstructor
 public class AlarmController {
-//
-//    private final WebSocketSessionManager sessionManager;
-//    private final AlarmService alarmService;
-//
-//    @MessageMapping("/sendAlarm")
-//    public void sendAlarm(@Payload SchedulerAlarmDto alarmRequest, SocketIOClient client) {
-//        Long userId = sessionManager.getUserId(client);  // 클라이언트로부터 사용자 ID 추출
-//        if (userId == null) {
-//            log.warn("연결된 사용자 ID를 찾을 수 없습니다.");
-//            return;
-//        }
-//
-//        Set<Long> onlineUserIds = sessionManager.getConnectedUsers();  // 접속된 사용자 목록 가져오기
-//        alarmService.checkAndSendScheduleAlarms(onlineUserIds, alarmRequest);
-//    }
+
+
 }

@@ -1,9 +1,11 @@
 package com.github.scheduler.schedule.service;
 
+import com.github.scheduler.alarm.service.AlarmService;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.entity.CalendarType;
+import com.github.scheduler.calendar.entity.UserCalendarEntity;
 import com.github.scheduler.calendar.repository.CalendarRepository;
 import com.github.scheduler.calendar.repository.UserCalendarRepository;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
@@ -29,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,6 +45,7 @@ public class ScheduleService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    private final AlarmService alarmService;
 
     //일정 조회(monthly,weekly,daily)
     @Transactional
@@ -197,6 +201,32 @@ public class ScheduleService {
         }
 
         eventPublisher.publishEvent(new ScheduleCreatedEvent(scheduleEntity.getScheduleId(), "일정을 성공적으로 등록했습니다."));
+
+        List<UserEntity> allMembers = Optional.ofNullable(savedScheduleEntity.getCalendar().getUserCalendars())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(UserCalendarEntity::getUserEntity)
+                .collect(Collectors.toList());
+
+        // createScheduleDto에 포함된 멤버의 알림을 처리
+        if (createScheduleDto.getMentionUserIds() != null && !createScheduleDto.getMentionUserIds().isEmpty()) {
+            List<Long> mentionedUserIds = createScheduleDto.getMentionUserIds();  // mentionUserIds를 리스트로 가져옴
+
+            // mentionUserIds에 포함된 유저들에게 'event_mentioned' 알림 전송
+            for (Long mentionUserId : mentionedUserIds) {
+                UserEntity mentionUser = userRepository.findById(mentionUserId)
+                        .orElseThrow(() -> new AppException(ErrorCode.INVALID_MENTION_USER, ErrorCode.INVALID_MENTION_USER.getMessage()));
+                alarmService.sendAlarm(mentionUser, savedScheduleEntity.getCalendar(), savedScheduleEntity, "event_mentioned");
+            }
+        }
+
+        for (UserEntity member : allMembers) {
+            // 해당 멤버가 mentionedUserIds에 포함되지 않으면 'event_added' 알림 전송
+            if (!createScheduleDto.getMentionUserIds().contains(member.getUserId())) {
+                alarmService.sendAlarm(member, savedScheduleEntity.getCalendar(), savedScheduleEntity, "event_added");
+            }
+        }
+
         CreateScheduleDto saveCreateScheduleDto = convertScheduleEntityToCreateScheduleDto(savedScheduleEntity);
         return Collections.singletonList(saveCreateScheduleDto);
     }
@@ -281,6 +311,14 @@ public class ScheduleService {
         try {
             scheduleRepository.flush();
             eventPublisher.publishEvent(new UpdateScheduleEvent(scheduleId, "일정이 성공적으로 수정되었습니다.", true));
+
+            ScheduleEntity schedule = scheduleRepository.findById(scheduleId)
+                    .orElseThrow(() -> new AppException(ErrorCode.SCHEDULE_NOT_FOUND, ErrorCode.SCHEDULE_NOT_FOUND.getMessage()));
+
+            for (UserEntity member : schedule.getCalendar().getUserCalendars().stream().map(UserCalendarEntity::getUserEntity).toList()) {
+                alarmService.sendAlarm(member, schedule.getCalendar(), schedule, "event_updated");
+            }
+
             return Collections.singletonList(convertScheduleEntityToUpdateScheduleDto(scheduleEntity));
         } catch (OptimisticLockingFailureException exception) {
             eventPublisher.publishEvent(new UpdateScheduleEvent(scheduleId, "동시 수정 충돌로 인해 수정 실패하였습니다.", false));
@@ -339,6 +377,13 @@ public class ScheduleService {
             scheduleRepository.flush();
 
             eventPublisher.publishEvent(new DeleteScheduleEvent(scheduleId, "일정이 성공적으로 삭제되었습니다.", true));
+
+            ScheduleEntity schedule = scheduleRepository.findById(scheduleId)
+                    .orElseThrow(() -> new AppException(ErrorCode.SCHEDULE_NOT_FOUND, ErrorCode.SCHEDULE_NOT_FOUND.getMessage()));
+
+            for (UserEntity member : schedule.getCalendar().getUserCalendars().stream().map(UserCalendarEntity::getUserEntity).toList()) {
+                alarmService.sendAlarm(member, schedule.getCalendar(), schedule, "event_deleted");
+            }
 
             return DeleteScheduleDto.builder()
                     .scheduleId(scheduleId)
