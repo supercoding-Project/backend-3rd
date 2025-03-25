@@ -32,7 +32,7 @@ public class SchedulerAlarmEntity {
     private CalendarEntity calendar;
 
     @ManyToOne
-    @JoinColumn(name = "schedule_id", nullable = false)
+    @JoinColumn(name = "schedule_id")
     private ScheduleEntity schedule;
 
     @Column(name = "type", nullable = false)

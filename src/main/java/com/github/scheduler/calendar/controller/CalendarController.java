@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @Slf4j
@@ -112,7 +111,7 @@ public class CalendarController {
 
     @Operation(summary = "캘린더의 멤버 삭제", description = "공용 캘린더에 속한 멤버를 선택하여 삭제")
     @SecurityRequirement(name = "bearerAuth")
-    @DeleteMapping("/v1/calendar/{calendarId}")
+    @DeleteMapping("/v1/calendar/{calendarId}/member")
     public ResponseEntity<ApiResponse<String>> removeMembers(
             @PathVariable Long calendarId,
             @RequestBody CalendarMemberDeleteRequestDto request,
@@ -120,5 +119,30 @@ public class CalendarController {
 
         calendarService.removeMembersFromCalendar(calendarId, userDetails.getUsername(), request.getTargetEmails());
         return ResponseEntity.ok(ApiResponse.success("선택한 멤버들이 삭제되었습니다."));
+    }
+
+    @Operation(summary = "캘린더 삭제", description = "캘린더 삭제하는 API 입니다.")
+    @SecurityRequirement(name = "bearerAuth")
+    @DeleteMapping("/v1/calendar/{calendarId}")
+    public ResponseEntity<ApiResponse<String>> deleteCalendar(
+            @PathVariable Long calendarId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        String email = customUserDetails.getUsername();
+
+        calendarService.deleteCalendar(calendarId, email);
+
+        return ResponseEntity.ok(ApiResponse.success("캘린더가 삭제되었습니다."));
+    }
+
+    @Operation(summary = "공용 캘린더에서 탈퇴하기", description = "공용 캘린더에 속한 유저가 탈퇴하는 API 입니다.")
+    @DeleteMapping("/v1/calendar/{calendarId}/leave")
+    public ResponseEntity<String> leaveCalendar(
+            @PathVariable Long calendarId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        String email = customUserDetails.getUsername();
+        calendarService.leaveCalendar(calendarId, email);
+        return ResponseEntity.ok("캘린더 탈퇴 완료");
     }
 }
