@@ -19,11 +19,14 @@ import java.util.Map;
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsServiceImpl userDetailsService;
+    private final WebSocketSessionManager sessionManager;
 
     public JwtHandshakeInterceptor(JwtTokenProvider jwtTokenProvider,
-                                   CustomUserDetailsServiceImpl userDetailsService) {
+                                   CustomUserDetailsServiceImpl userDetailsService,
+                                   WebSocketSessionManager sessionManager) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -31,21 +34,36 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
         if (request instanceof ServletServerHttpRequest) {
             HttpServletRequest httpRequest = ((ServletServerHttpRequest) request).getServletRequest();
-            String token = httpRequest.getParameter("token");  // 쿼리 파라미터로 토큰을 받음
 
-            if (token != null && jwtTokenProvider.validateToken(token)) {
-                String email = jwtTokenProvider.getEmailByToken(token);
-                CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
+            // Authorization 헤더에서 Bearer 토큰을 추출
+            String authorizationHeader = httpRequest.getHeader("Authorization");
+            log.info("Authorization header: {}", authorizationHeader);
 
-                attributes.put("userDetails", userDetails);
-                log.info("웹소켓 핸드셰이크 성공: 사용자 이메일 - {}", email);
-                return true;
+            // Authorization 헤더에서 "Bearer " 부분을 제외한 토큰을 추출
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7);  // "Bearer "를 제외한 부분만 추출
+                log.info("Received token: {}", token);
+
+                // 토큰이 유효한지 검사
+                if (jwtTokenProvider.validateToken(token)) {
+                    String email = jwtTokenProvider.getEmailByToken(token);
+                    CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
+
+                    // WebSocket 세션에 사용자 정보 저장
+                    attributes.put("userDetails", userDetails);
+                    log.info("웹소켓 핸드셰이크 성공: 사용자 이메일 - {}", email);
+
+                    // 세션 정보를 sessionManager에 저장
+                    sessionManager.addSession(userDetails.getUserEntity().getUserId());
+
+                    return true;
+                }
             }
         }
+
         log.warn("웹소켓 핸드셰이크 실패: 유효한 JWT 토큰이 없음");
         return false;
     }
-
 
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,

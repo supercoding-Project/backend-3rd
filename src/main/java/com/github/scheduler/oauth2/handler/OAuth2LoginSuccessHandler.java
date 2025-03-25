@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +28,6 @@ import java.util.Optional;
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final UserService userService;
 
     @Override

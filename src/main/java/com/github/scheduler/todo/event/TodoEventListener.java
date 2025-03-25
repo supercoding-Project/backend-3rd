@@ -12,29 +12,29 @@ public class TodoEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTodoUpdatedSuccess(TodoUpdateEvent event) {
-        if (event.success()){
-            log.info("Todo {} updated successfully. Message: {}", event.todoId(), event.message());
+        if (event.isSuccess()){
+            log.info("Todo {} updated successfully. Message: {}", event.getTodoId(), event.getMessage());
         }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handleTodoUpdateFail(TodoUpdateEvent event){
-        if (!event.success()){
-            log.warn("Todo {} update failed. Message: {}", event.todoId(), event.message());
+        if (!event.isSuccess()){
+            log.warn("Todo {} update failed. Message: {}", event.getTodoId(), event.getMessage());
         }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTodoDeleteSuccess(TodoDeleteEvent event) {
-        if (event.success()){
-            log.info("Todo {} delete successfully. Message: {}", event.todoId(), event.message());
+        if (event.isSuccess()){
+            log.info("Todo {} delete successfully. Message: {}", event.getTodoId(), event.getMessage());
         }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
     public void handleTodoDeleteFail(TodoDeleteEvent event){
-        if (!event.success()){
-            log.warn("Todo {} delete failed. Message: {}", event.todoId(), event.message());
+        if (!event.isSuccess()){
+            log.warn("Todo {} delete failed. Message: {}", event.getTodoId(), event.getMessage());
         }
     }
 

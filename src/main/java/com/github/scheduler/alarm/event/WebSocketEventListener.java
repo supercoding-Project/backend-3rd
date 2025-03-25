@@ -1,5 +1,7 @@
 package com.github.scheduler.alarm.event;
 
+import com.github.scheduler.auth.entity.UserEntity;
+import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.global.config.alarm.WebSocketSessionManager;
 import com.github.scheduler.global.config.auth.JwtTokenProvider;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
@@ -14,50 +16,70 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Component
 public class WebSocketEventListener {
     private final WebSocketSessionManager sessionManager;
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
 
-    public WebSocketEventListener(WebSocketSessionManager sessionManager, JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
+    public WebSocketEventListener(WebSocketSessionManager sessionManager, JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
         this.sessionManager = sessionManager;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.userDetailsService = userDetailsService;
+        this.userRepository = userRepository;
     }
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 
-        if (headerAccessor.getSessionAttributes() == null) {
-            headerAccessor.setSessionAttributes(new HashMap<>());
+        // ✅ WebSocket 헤더에서 토큰 가져오기
+        String token = headerAccessor.getFirstNativeHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            log.warn("❌ WebSocket 연결 요청 실패: Authorization 헤더 없음");
+            return;
+        }
+        token = token.substring(7);
+
+        // ✅ 토큰 검증
+        if (!jwtTokenProvider.validateToken(token)) {
+            log.warn("❌ WebSocket 연결 요청 실패: 유효하지 않은 토큰");
+            return;
         }
 
-        CustomUserDetails userDetails = (CustomUserDetails) headerAccessor.getSessionAttributes().get("userDetails");
+        try {
+            // ✅ 토큰에서 이메일 추출 후 DB 조회
+            String userEmail = jwtTokenProvider.getEmailByToken(token);
+            UserEntity userEntity = userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. 이메일: " + userEmail));
 
-        if (userDetails != null) {
-            Long userId = userDetails.getUserEntity().getUserId();
-            WebSocketSession session = (WebSocketSession) event.getMessage().getHeaders().get("simpSessionId");
+            Long userId = userEntity.getUserId();
+            String sessionId = headerAccessor.getSessionId();
 
-            sessionManager.addSession(userId, session);
-            log.info("✅ WebSocket 연결됨: 사용자 ID - {}", userId);
-        } else {
-            log.warn("❌ 사용자 정보가 없습니다.");
+            // ✅ 세션에 사용자 추가
+            sessionManager.addSession(userId);
+            if (headerAccessor.getSessionAttributes() != null) {
+                headerAccessor.getSessionAttributes().put("userId", userId);
+            }
+
+            log.info("✅ WebSocket 연결됨: 사용자 ID - {}, 세션 ID - {}", userId, sessionId);
+        } catch (Exception e) {
+            log.error("❌ WebSocket 연결 중 오류 발생: {}", e.getMessage(), e);
         }
     }
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        CustomUserDetails userDetails = (CustomUserDetails) headerAccessor.getSessionAttributes().get("userDetails");
+        Long userId = sessionManager.getUserId(headerAccessor);
 
-        if (userDetails != null) {
-            Long userId = userDetails.getUserEntity().getUserId();
+        if (userId != null) {
             sessionManager.removeSession(userId);
             log.info("❌ WebSocket 연결 종료: 사용자 ID - {}", userId);
+        } else {
+            log.warn("❌ WebSocket 연결 종료: 사용자 ID 찾을 수 없음");
         }
     }
 }
