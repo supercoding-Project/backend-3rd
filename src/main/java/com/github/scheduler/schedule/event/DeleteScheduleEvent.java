@@ -1,5 +1,14 @@
 package com.github.scheduler.schedule.event;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-public record DeleteScheduleEvent(Long scheduleId, String message, boolean success) {
+@Getter
+@AllArgsConstructor
+@RequiredArgsConstructor
+public class DeleteScheduleEvent{
+    private Long ScheduleId;
+    private String message;
+    private boolean success;
 }
