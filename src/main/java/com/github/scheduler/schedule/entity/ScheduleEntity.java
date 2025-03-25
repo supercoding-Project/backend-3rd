@@ -71,16 +71,15 @@ public class ScheduleEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TodoEntity> todoList = new ArrayList<>();
 
     @Version
     @Column(name = "version")
     private Long version;
-
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
     private List<ScheduleMentionEntity> mentions = new ArrayList<>();
