@@ -19,5 +19,5 @@ public class ChatMessageDto {
     private Long calendarId;
     private Long senderId;
     private String message;
-    private LocalDateTime sendAt;
+    private LocalDateTime createdAt;
 }
