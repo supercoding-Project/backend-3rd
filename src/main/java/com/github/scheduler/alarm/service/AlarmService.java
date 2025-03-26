@@ -1,6 +1,6 @@
 package com.github.scheduler.alarm.service;
 
-import com.github.scheduler.alarm.dto.AlarmResponseDto;
+
 import com.github.scheduler.alarm.dto.SchedulerAlarmDto;
 import com.github.scheduler.alarm.entity.SchedulerAlarmEntity;
 import com.github.scheduler.alarm.entity.SchedulerInvitationAlarmEntity;
