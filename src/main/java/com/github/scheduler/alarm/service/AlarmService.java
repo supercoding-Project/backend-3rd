@@ -1,8 +1,7 @@
 package com.github.scheduler.alarm.service;
 
+
 import com.github.scheduler.alarm.dto.SchedulerAlarmDto;
-import com.github.scheduler.alarm.dto.SchedulerInvitationAlarmDto;
-import com.github.scheduler.alarm.entity.AlarmType;
 import com.github.scheduler.alarm.entity.SchedulerAlarmEntity;
 import com.github.scheduler.alarm.entity.SchedulerInvitationAlarmEntity;
 import com.github.scheduler.alarm.repository.SchedulerAlarmRepository;
@@ -12,27 +11,22 @@ import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.entity.CalendarType;
 import com.github.scheduler.calendar.entity.UserCalendarEntity;
-import com.github.scheduler.calendar.repository.UserCalendarRepository;
-import com.github.scheduler.global.config.alarm.SessionManager;
 import com.github.scheduler.global.config.alarm.WebSocketSessionManager;
-import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
-import com.github.scheduler.schedule.dto.ScheduleDto;
 import com.github.scheduler.schedule.entity.RepeatType;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
-import com.github.scheduler.schedule.entity.ScheduleStatus;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -49,6 +43,56 @@ public class AlarmService {
     private final SimpMessagingTemplate messagingTemplate;
     private final WebSocketSessionManager sessionManager;
 
+    // 읽음처리
+    @Transactional
+    public SchedulerAlarmDto markAlarmAsRead(Long userId, Long alarmId, String alarmType) {
+        if ("schedule".equalsIgnoreCase(alarmType)) {
+            SchedulerAlarmEntity alarm = schedulerAlarmRepository.findById(alarmId)
+                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_ALARM, ErrorCode.NOT_FOUND_ALARM.getMessage()));
+            validateUserAccess(userId, alarm.getUser().getUserId());
+            alarm.setChecked(true);
+            schedulerAlarmRepository.save(alarm);
+            return new SchedulerAlarmDto(alarm.getId(), alarm.getUser().getUserId(), alarm.getSchedule().getScheduleId(),alarm.getType(), alarm.isChecked());
+        } else if ("invitation".equalsIgnoreCase(alarmType)) {
+            SchedulerInvitationAlarmEntity invitationAlarm = schedulerInvitationAlarmRepository.findById(alarmId)
+                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_INVITE_ALARM, ErrorCode.NOT_FOUND_INVITE_ALARM.getMessage()));
+            validateUserAccess(userId, invitationAlarm.getUser().getUserId());
+            invitationAlarm.setChecked(true);
+            schedulerInvitationAlarmRepository.save(invitationAlarm);
+            return new SchedulerAlarmDto(invitationAlarm.getId(), invitationAlarm.getUser().getUserId(), null, invitationAlarm.getType(), invitationAlarm.isChecked());
+        } else {
+            throw new AppException(ErrorCode.CHECK_TYPE, ErrorCode.CHECK_TYPE.getMessage());
+        }
+    }
+
+    private void validateUserAccess(Long requestUserId, Long alarmOwnerId) {
+        if (!requestUserId.equals(alarmOwnerId)) {
+            throw new AppException(ErrorCode.CANNOT_READ, ErrorCode.CANNOT_READ.getMessage());
+        }
+    }
+
+    // 읽지않은 알림 전체 조회
+    @Transactional
+    public List<SchedulerAlarmDto> getUnreadAlarms(Long userId) {
+        List<SchedulerAlarmEntity> unreadAlarms = schedulerAlarmRepository.findByUser_UserIdAndIsCheckedFalse(userId);
+        List<SchedulerInvitationAlarmEntity> unreadInvitationAlarms = schedulerInvitationAlarmRepository.findByUser_UserIdAndIsCheckedFalse(userId);
+
+        List<SchedulerAlarmDto> alarmDtos = new ArrayList<>();
+        unreadAlarms.forEach(alarm ->
+                alarmDtos.add(new SchedulerAlarmDto(
+                        alarm.getId(), alarm.getUser().getUserId(), alarm.getSchedule() != null ? alarm.getSchedule().getScheduleId() : null,
+                        alarm.getType(), alarm.isChecked()
+                ))
+        );
+        unreadInvitationAlarms.forEach(inviteAlarm ->
+                alarmDtos.add(new SchedulerAlarmDto(
+                        inviteAlarm.getId(), inviteAlarm.getUser().getUserId(), null, inviteAlarm.getType(), inviteAlarm.isChecked()
+                ))
+        );
+        return alarmDtos;
+    }
+
+
     @Transactional
     public void sendAlarmToUser(String userEmail, SchedulerAlarmEntity alarm) {
         SchedulerAlarmDto alarmDto = new SchedulerAlarmDto(
@@ -59,7 +103,7 @@ public class AlarmService {
                 alarm.isChecked()
         );
         messagingTemplate.convertAndSendToUser(userEmail, "/queue/alarms", alarmDto);
-        log.info("알림 전송: {} -> {}", alarm.getType(), userEmail);
+        log.info("알림 전송: {} -> {}, {}", alarm.getType(), userEmail, alarmDto);
     }
 
 
@@ -94,15 +138,15 @@ public class AlarmService {
                     .build();
             schedulerInvitationAlarmRepository.save(invitationAlarm);
 
-            // 클라이언트에 알림 전송
-            SchedulerInvitationAlarmDto invitationAlarmDto = new SchedulerInvitationAlarmDto(
+            SchedulerAlarmDto invitationAlarmDto = new SchedulerAlarmDto(
                     user.getUserId(),
                     calendar.getCalendarId(),
+                    null,
                     type,
                     invitationAlarm.isChecked()
             );
             messagingTemplate.convertAndSendToUser(user.getEmail(), "/queue/alarms", invitationAlarmDto);
-            log.info("초대 알림 저장 완료: id={} -> {}", invitationAlarm.getId(), user.getEmail());
+            log.info("초대 알림 저장 완료: id={} -> {}, {}", invitationAlarm.getId(), user.getEmail(), invitationAlarmDto);
         } catch (Exception e) {
             log.error("초대 알림 저장 실패: {}", e.getMessage());
             throw new RuntimeException("초대 알림 저장 실패", e);  // RuntimeException으로 롤백 트리거
@@ -114,48 +158,43 @@ public class AlarmService {
     public void checkAndSendScheduleAlarms() {
         try {
             Set<Long> onlineUserIds = sessionManager.getConnectedUsers(); // 접속된 사용자들
+            LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
 
-            if (onlineUserIds.isEmpty()) {
-                log.info("🔕 현재 접속 중인 사용자가 없습니다.");
-                return;
+            log.info("현재 시간: {}", now);
+
+            List<ScheduleEntity> schedules = scheduleRepository.findAll();
+            for (ScheduleEntity schedule : schedules) {
+                if (!isScheduleMatching(schedule, now) || isDuplicateAlarm(schedule, now)) {
+                    continue;
+                }
+
+                List<UserEntity> recipients = getRecipients(schedule);
+                for (UserEntity recipient : recipients) {
+                    // 사용자가 현재 접속 중이면 실시간 전송
+                    if (onlineUserIds.contains(recipient.getUserId())) {
+                        SchedulerAlarmEntity alarm = SchedulerAlarmEntity.builder()
+                                .user(recipient)
+                                .calendar(schedule.getCalendar())
+                                .schedule(schedule)
+                                .type("event_started")
+                                .isChecked(false)
+                                .createdAt(LocalDateTime.now())
+                                .updatedAt(LocalDateTime.now())
+                                .build();
+
+                        schedulerAlarmRepository.save(alarm); // 알림 저장
+
+                        sendAlarmToUser(recipient.getEmail(), alarm);
+                    }else{
+                        sendAlarm(recipient, schedule.getCalendar(), schedule, "event_started");
+                    }
+                }
             }
-            // 각 사용자에 대해 스케줄 알림을 처리
-            processScheduleAlarms(onlineUserIds);
         } catch (Exception ex) {
             log.error("알림 전송 중 예기치 못한 오류 발생: {}", ex.getMessage(), ex);
         }
     }
 
-    private void processScheduleAlarms(Set<Long> onlineUserIds) {
-        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
-        log.info("📅 현재 시간: {}", now);
-
-        for (Long userId : onlineUserIds) {
-            UserEntity user = userRepository.findById(userId)
-                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage()));
-
-            List<CalendarEntity> calendars = user.getUserCalendars().stream()
-                    .map(UserCalendarEntity::getCalendarEntity)
-                    .toList();
-
-            for (CalendarEntity calendar : calendars) {
-                List<ScheduleEntity> schedules = scheduleRepository.findByCalendar(calendar);
-
-                for (ScheduleEntity schedule : schedules) {
-                    if (!isScheduleMatching(schedule, now) || isDuplicateAlarm(schedule, now)) {
-                        continue;
-                    }
-
-                    List<UserEntity> recipients = getRecipients(schedule);
-                    for (UserEntity recipient : recipients) {
-                        if (onlineUserIds.contains(recipient.getUserId())) {
-                            sendAlarm(recipient, schedule.getCalendar(), schedule, "event_started");
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     private boolean isScheduleMatching(ScheduleEntity schedule, LocalDateTime now) {
         LocalDateTime startTime = schedule.getStartTime().withSecond(0).withNano(0);

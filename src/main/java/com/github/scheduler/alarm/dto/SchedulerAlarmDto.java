@@ -13,4 +13,15 @@ public class SchedulerAlarmDto {
     private Long eventId;
     private String type;
     private boolean isRead;
+
+    @Override
+    public String toString() {
+        return "SchedulerAlarmDto{" +
+                "userId=" + userId +
+                ", calendarId=" + calendarId +
+                ", eventId=" + eventId +
+                ", type='" + type + '\'' +
+                ", isRead=" + isRead +
+                '}';
+    }
 }

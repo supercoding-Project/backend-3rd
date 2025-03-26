@@ -185,9 +185,9 @@ public class CalendarService {
                 .map(uc -> new CalendarResponseDto(
                         uc.getCalendarEntity().getCalendarId(),
                         uc.getCalendarEntity().getCalendarName(),
+                        uc.getCalendarEntity().getCalendarDescription(),
                         uc.getCalendarEntity().getCalendarType().getType(),
                         uc.getRole().getType(),
-                        uc.getCalendarEntity().getCalendarDescription(),
                         uc.getCalendarEntity().getCalendarColor(),
                         uc.getCalendarEntity().getCreatedAt()
                 ))

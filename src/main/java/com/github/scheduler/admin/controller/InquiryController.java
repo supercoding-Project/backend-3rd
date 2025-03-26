@@ -6,6 +6,10 @@ import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,14 +24,18 @@ public class InquiryController {
 
     private final InquiryService inquiryService;
 
-    @Operation(summary = "전체 문의글 조회")  // 비공개 글은 제목만 or 비밀번호 확인 후 조회
+    @Operation(summary = "전체 문의글 조회 (검색 & 페이징)")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<InquiryListResponseDTO>>> getAllInquiries() {
-        List<InquiryListResponseDTO> inquiries = inquiryService.getAllInquiries();
+    public ResponseEntity<ApiResponse<Page<InquiryListResponseDTO>>> getAllInquiries(
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 10,sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Page<InquiryListResponseDTO> inquiries = inquiryService.getAllInquiries(keyword,pageable,userDetails.getUserEntity());
         return ResponseEntity.ok(ApiResponse.success(inquiries));
     }
 
-    @Operation(summary = "문의글 상세 조회")   // 비공개 글이면 403 or 비밀번호 확인 필요
+    @Operation(summary = "문의글 상세 조회")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<InquiryDetailResponseDTO>> getInquiry(@PathVariable Long id) {
         InquiryDetailResponseDTO inquiry =  inquiryService.getInquiry(id);

@@ -78,8 +78,13 @@ public enum ErrorCode {
     INQUIRY_ALREADY_ANSWERED(HttpStatus.CONFLICT, "이미 답변된 문의글입니다."),
     INQUIRY_ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "답변을 찾을 수 없습니다."),
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 공지사항을 찾을 수 없습니다."),
-    FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 FAQ를 찾을 수 없습니다.");
+    FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 FAQ를 찾을 수 없습니다."),
 
+    // Alarm 에러코드
+    NOT_FOUND_ALARM(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
+    NOT_FOUND_INVITE_ALARM(HttpStatus.NOT_FOUND, "초대 알림을 찾을 수 없습니다."),
+    CHECK_TYPE(HttpStatus.BAD_REQUEST, "잘못된 alarmType입니다. (schedule 또는 invitation 사용)"),
+    CANNOT_READ(HttpStatus.FORBIDDEN, "해당 알림을 읽을 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
