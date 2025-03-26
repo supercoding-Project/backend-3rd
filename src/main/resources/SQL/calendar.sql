@@ -11,11 +11,11 @@ CREATE TABLE calendar (
 
 CREATE TABLE user_calendar (
                                user_calendar_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                               user_id BIGINT NOT NULL,
-                               calendar_id BIGINT NOT NULL,
-                               role VARCHAR(20) NOT NULL,
-                               joined_at DATETIME,
-                               FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-                               FOREIGN KEY (calendar_id) REFERENCES calendar(calendar_id) ON DELETE CASCADE,
-                               UNIQUE (user_id, calendar_id) -- 중복 방지
+       user_id BIGINT NOT NULL,
+       calendar_id BIGINT NOT NULL,
+       role VARCHAR(20) NOT NULL,
+       joined_at DATETIME,
+       FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+       FOREIGN KEY (calendar_id) REFERENCES calendar(calendar_id) ON DELETE CASCADE,
+       UNIQUE (user_id, calendar_id) -- 중복 방지
 );
