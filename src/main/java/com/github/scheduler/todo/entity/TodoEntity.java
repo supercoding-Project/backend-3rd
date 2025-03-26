@@ -29,10 +29,6 @@ public class TodoEntity {
     @JoinColumn(name = "create_user_id", nullable = false)
     private UserEntity createUser;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id")
-    private ScheduleEntity schedule;
-
     @Column(name = "todo_content", nullable = false)
     private String todoContent; // 할 일 내용
 

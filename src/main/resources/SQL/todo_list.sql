@@ -1,7 +1,6 @@
 CREATE TABLE todo_list (
                            todo_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                            create_user_id BIGINT NOT NULL,
-                           schedule_id BIGINT,
                            todo_content VARCHAR(225) NOT NULL,
                            todo_date DATE NOT NULL,
                            memo TEXT,
@@ -12,8 +11,7 @@ CREATE TABLE todo_list (
                            calendar_id BIGINT,
                            version BIGINT NOT NULL DEFAULT 0,
                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
---                            FOREIGN KEY (create_user_id) REFERENCES users(user_id),
---                            FOREIGN KEY (schedule_id) REFERENCES schedules(schedule_id),
---                            FOREIGN KEY (calendar_id) REFERENCES calendar(calendar_id)
+                           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+#                           FOREIGN KEY (create_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+#                           FOREIGN KEY (calendar_id) REFERENCES calendar(calendar_id) ON DELETE CASCADE
 );
