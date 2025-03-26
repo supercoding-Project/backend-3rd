@@ -41,6 +41,7 @@ public class MyPageService {
         String userImageUrl = getUserProfileImageUrl(userEntity);
 
         return UserDto.builder()
+                .id(userEntity.getUserId())
                 .email(userEntity.getEmail())
                 .name(userEntity.getUsername())
                 .phone(userEntity.getPhone())
