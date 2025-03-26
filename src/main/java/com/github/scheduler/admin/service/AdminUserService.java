@@ -44,7 +44,7 @@ public class AdminUserService {
         return AdminUserDetailResponseDTO.from(user);
     }
 
-    public void updateUserStatus(long id, AdminUserUpdateDTO dto) {
+    public void updateUser(long id, AdminUserUpdateDTO dto) {
         UserEntity user = userRepository.findById(id)
                  .orElseThrow(() -> new AppException(ErrorCode.ADMIN_USER_NOT_FOUND,ErrorCode.ADMIN_USER_NOT_FOUND.getMessage()));
 

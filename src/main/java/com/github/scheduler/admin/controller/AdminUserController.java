@@ -53,7 +53,7 @@ public class AdminUserController {
     @PatchMapping("/{id}/update")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<String>> updateUser(@PathVariable long id,@RequestBody AdminUserUpdateDTO dto) {
-            adminUserService.updateUserStatus(id,dto);
+            adminUserService.updateUser(id,dto);
             return ResponseEntity.ok(ApiResponse.success("✅유저 정보가 수정되었습니다."));
     }
 
