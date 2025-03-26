@@ -9,6 +9,8 @@ import com.github.scheduler.admin.repository.FaqRepository;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,16 +23,14 @@ public class FaqService {
     private final FaqRepository faqRepository;
 
 
-    public List<FaqListResponseDTO> getAllFaqs() {
-        return faqRepository.findAll().stream()
-                .map(FaqListResponseDTO::from)
-                .collect(Collectors.toList());
+    public Page<FaqListResponseDTO> getAllFaqs(String keyword, Pageable pageable) {
+        return faqRepository.findByKeyword(keyword,pageable)
+                .map(FaqListResponseDTO::from);
     }
 
-    public List<FaqListResponseDTO> getFaqsByCategory(FaqCategory category) {
-        return faqRepository.findByCategory(category).stream()
-                .map(FaqListResponseDTO::from)
-                .collect(Collectors.toList());
+    public Page<FaqListResponseDTO> getFaqsByCategory(FaqCategory category, Pageable pageable) {
+        return faqRepository.findByCategory(category,pageable)
+                .map(FaqListResponseDTO::from);
     }
 
     public FaqDetailResponseDTO getFaq(long id) {

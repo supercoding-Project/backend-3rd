@@ -8,6 +8,8 @@ import com.github.scheduler.admin.repository.NoticeRepository;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,10 +21,9 @@ public class NoticeService {
 
     private final NoticeRepository noticeRepository;
 
-    public List<NoticeResponseDTO> getAllNotices() {
-        return noticeRepository.findAll().stream()
-                .map(NoticeResponseDTO::from)
-                .collect(Collectors.toList());
+    public Page<NoticeResponseDTO> getAllNotices(String keyword, Pageable pageable) {
+        return noticeRepository.findKeyword(keyword,pageable)
+                .map(NoticeResponseDTO::from);
     }
 
 

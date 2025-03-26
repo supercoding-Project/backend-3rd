@@ -3,11 +3,14 @@ package com.github.scheduler.admin.service;
 import com.github.scheduler.admin.dto.inquiry.*;
 import com.github.scheduler.admin.entity.InquiryEntity;
 import com.github.scheduler.admin.repository.InquiryRepository;
+import com.github.scheduler.auth.entity.Role;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,17 +22,14 @@ public class InquiryService {
     private final InquiryRepository inquiryRepository;
     private final UserRepository userRepository;
 
-    public List<InquiryListResponseDTO> getAllInquiries() {
-        List<InquiryEntity> inquiries = inquiryRepository.findAll();
-
-        return inquiries.stream()
+    public Page<InquiryListResponseDTO> getAllInquiries(String keyword, Pageable pageable, UserEntity user) {
+        return inquiryRepository.findByTitleKeyword(keyword,pageable)
                 .map(inquiry -> {
-                    if (inquiry.isPrivate()) {
+                    if (inquiry.isPrivate() && !user.getRole().equals(Role.ROLE_ADMIN)) {
                         return InquiryListResponseDTO.ofHidden(inquiry);
                     }
                     return InquiryListResponseDTO.of(inquiry);
-                })
-                .toList();
+                });
     }
 
     public InquiryDetailResponseDTO getInquiry(Long id) {
