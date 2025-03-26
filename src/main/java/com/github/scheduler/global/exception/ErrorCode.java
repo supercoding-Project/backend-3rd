@@ -63,7 +63,7 @@ public enum ErrorCode {
     DUPLICATED_CHATROOM(HttpStatus.CONFLICT, "채팅방이 이미 존재합니다."),
     DUPLICATED_CHATROOM_USER(HttpStatus.CONFLICT, "해당 유저는 이미 채팅방에 참여 했습니다."),
     NOT_FOUND_CHATROOM(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
-
+    NOT_EXIST_MESSAGE(HttpStatus.NOT_FOUND, "메시지가 없습니다."),
     // admin 에러코드
     ADMIN_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "관리자 권한이 없습니다."),
     ADMIN_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저를 찾을 수 없습니다."),

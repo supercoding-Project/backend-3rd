@@ -23,15 +23,4 @@ public class ChatRoomUserDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime joinedAt;
 
-    public static ChatRoomUserDto toDto(ChatRoomUser chatRoomUser) {
-        return  ChatRoomUserDto.builder()
-                .roomId(chatRoomUser.getChatRoom().getId())
-                .roomName(chatRoomUser.getChatRoom().getName())
-                .userId(chatRoomUser.getUser().getUserId())
-                .calendarId(chatRoomUser.getChatRoom().getCalendar().getCalendarId())
-                .lastReadMessageId(chatRoomUser.getLastReadMessageId())
-                .joinedAt(chatRoomUser.getJoinedAt())
-                .build();
-
-    }
 }

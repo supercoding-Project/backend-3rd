@@ -2,10 +2,7 @@ package com.github.scheduler.chat.controller;
 
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.calendar.dto.CalendarJoinRequestDto;
-import com.github.scheduler.chat.dto.ChatRoomCreate;
-import com.github.scheduler.chat.dto.ChatRoomDto;
-import com.github.scheduler.chat.dto.ChatRoomUserDto;
-import com.github.scheduler.chat.dto.LastReadMessage;
+import com.github.scheduler.chat.dto.*;
 import com.github.scheduler.chat.entity.ChatMessage;
 import com.github.scheduler.chat.entity.ChatRoom;
 import com.github.scheduler.chat.service.ChatRestService;
@@ -21,6 +18,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -86,23 +84,36 @@ public class ChatRestController {
         return chatRestService.joinRoom(customUserDetails,inviteCode);
     }
 
-//    @Operation(summary = "user가 마지막으로 읽은 메시지 id update")
-//    @PatchMapping("/rooms/{roomId}/last-read")
-//    public ResponseEntity<ApiResponse<Void>> updateLastReadMessage(
-//            @AuthenticationPrincipal CustomUserDetails customUserDetails,
-//            @PathVariable Long roomId,
-//            @RequestBody LastReadMessage lastReadMessage) {
-//        if (customUserDetails == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                    .body(ApiResponse.fail(ErrorCode.UNAUTHORIZED_ACCESS));
-//        }
-//        // user가 마지막 메시지 아이디를 어떻게 가져오지?
-//        // user가 채팅방을 나가거나 새로고침할 때, 마지막으로 읽은 메시지를 저장
-//        chatRestService.updateLastReadMessage(roomId,lastReadMessage,customUserDetails);
-//        return ResponseEntity.ok().build();
-//    }
+    @Operation(summary = "user가 마지막으로 읽은 메시지 id update")
+    @PatchMapping("/room/exit/{roomId}")
+    public ResponseEntity<ApiResponse<String>> updateLastReadMessage(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable Long roomId) {
+        if (customUserDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail(ErrorCode.UNAUTHORIZED_ACCESS));
+        }
+        // user가 채팅방을 나가거나 새로고침할 때, 마지막으로 읽은 메시지를 저장
+        return chatRestService.updateLastReadMessage(roomId,customUserDetails);
+    }
     // todo
+    // 메시지 조회
+    @Operation(summary = "채팅 메시지 조회",
+            description = "유저가 채팅방에 join한 시점 이후로만 조회가 가능, 안읽은 메시지 + 이전 10개 조회")
+    @GetMapping("/message/unread/{roomId}")
+    public ResponseEntity<ApiResponse<Page<ChatMessageDto>>> sendMessage(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable Long roomId ) {
+        if (customUserDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail(ErrorCode.UNAUTHORIZED_ACCESS));
+        }
+        log.info("메시지 조회할 채팅방: {}",roomId);
 
+        return chatRestService.getUnreadMessages(customUserDetails,roomId);
+    }
+
+    //
 
 
 

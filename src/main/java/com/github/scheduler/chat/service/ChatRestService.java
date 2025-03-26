@@ -7,6 +7,9 @@ import com.github.scheduler.calendar.entity.UserCalendarEntity;
 import com.github.scheduler.calendar.repository.CalendarRepository;
 import com.github.scheduler.calendar.repository.UserCalendarRepository;
 import com.github.scheduler.chat.dto.*;
+import com.github.scheduler.chat.dto.mapper.ChatMessageMapper;
+import com.github.scheduler.chat.dto.mapper.ChatRoomUserMapper;
+import com.github.scheduler.chat.entity.ChatMessage;
 import com.github.scheduler.chat.entity.ChatRoom;
 import com.github.scheduler.chat.entity.ChatRoomUser;
 import com.github.scheduler.chat.event.ChatRoomCreateEvent;
@@ -22,6 +25,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -93,15 +99,12 @@ public class ChatRestService {
         if (chatRoomUserList.isEmpty()) {
             throw new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage());
         }
-        List<ChatRoomUserDto> userChatRoomUserDtoList = chatRoomUserList.stream()
-                .map(ChatRoomUserDto::toDto)
-                .toList();
-        return ResponseEntity.ok(ApiResponse.success(userChatRoomUserDtoList));
+
+        return ResponseEntity.ok(ApiResponse.success(ChatRoomUserMapper.toChatRoomUserDtoList(chatRoomUserList)));
 
     }
-
+    @Transactional
     public ResponseEntity<ApiResponse<ChatRoomUserDto>> joinRoom(CustomUserDetails customUserDetails, String inviteCode) {
-        // 초대 코드로 캘린더 ID 가져오기
         Long calendarId = inviteCodeService.validateInviteCode(inviteCode);
         log.info("Redis에서 조회된 calendarId: {}", calendarId);
         UserEntity user = customUserDetails.getUserEntity();
@@ -112,7 +115,11 @@ public class ChatRestService {
         // chat room 검색
         ChatRoom chatRoom = chatRoomRepository.findByCalendar(calendar)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
-
+        // 중복 찾기
+        chatRoomUserRepository.findByChatRoomAndUser(chatRoom,user)
+                .ifPresent(chatRoomUser -> {
+                    throw new AppException(ErrorCode.DUPLICATED_CHATROOM_USER,ErrorCode.DUPLICATED_CHATROOM_USER.getMessage());
+                });
         // last read message 가 null 일 경우 joined한 시기 이후 부터의 메시지 조회가 가능
         ChatRoomUser joinUser = chatRoomUserRepository.save(ChatRoomUser.builder()
                 .chatRoom(chatRoom)
@@ -120,23 +127,53 @@ public class ChatRestService {
                 .lastReadMessageId(null)
                 .build());
 
-        return ResponseEntity.ok(ApiResponse.success(ChatRoomUserDto.toDto(joinUser)));
+        return ResponseEntity.ok(ApiResponse.success(ChatRoomUserMapper.toChatRoomUserDto(joinUser)));
     }
+    @Transactional
+    public ResponseEntity<ApiResponse<String>> updateLastReadMessage(Long roomId, CustomUserDetails customUserDetails) {
+        // user 조회
+        // chatroom 조회
+        // 채팅방의 마지막 메시지 가져오기
+        // chat room user 의 마지막 메시지 id update
+        UserEntity user = customUserDetails.getUserEntity();
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
+        ChatMessage lastMsg = chatMessageRepository.findFirstByChatRoomOrderByCreatedAtDesc(chatRoom);
+        if (lastMsg == null) {
+            return ResponseEntity.ok(ApiResponse.fail(ErrorCode.NOT_EXIST_MESSAGE));
+        }
+        ChatRoomUser chatRoomUser = chatRoomUserRepository.findByChatRoomAndUser(chatRoom, user)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage()));
 
-    public ResponseEntity<ApiResponse<List<ChatMessageDto>>> getMessage(CustomUserDetails customUserDetails, ChatMessageGetRequest chatMessageGetRequest) {
-        // user Entity 가져오기
-        // chat room 가져오기
-        // user가 마지막으로 읽은 메시지 ID 가져오기
-        // 1. where req_date <= createdAt <= 현재
-        // 2. 마지막 읽은 메시지 <= messageId <= last Message id
-        return null;
+        chatRoomUser.setLastReadMessageId(lastMsg.getId());
+
+        return ResponseEntity.ok(ApiResponse.success("success"));
+
     }
-//    public void updateLastReadMessage(Long roomId, LastReadMessage lastReadMessage, CustomUserDetails customUserDetails) {
-//    }
-//
-//    public ResponseEntity<ApiResponse<List<ChatRoomDto>>> getChatRooms(CustomUserDetails customUserDetails) {
-//        UserEntity user = customUserDetails.getUserEntity();
-//        List<ChatRoomUser> chatRoomUserList = chatRoomUserRepository.findByUser(user);
-//
-//    }
+    @Transactional
+    public ResponseEntity<ApiResponse<Page<ChatMessageDto>>> getUnreadMessages(CustomUserDetails customUserDetails, Long roomId) {
+
+        Pageable pageable = PageRequest.of(0, 10);
+        // user 조회
+        UserEntity user = customUserDetails.getUserEntity();
+        // chatRoom 조회
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
+        // chatRoomUser 조회
+        ChatRoomUser chatRoomUser = chatRoomUserRepository.findByChatRoomAndUser(chatRoom,user)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage()));
+        // lastRead message id
+        Long lastReadMessageId = chatRoomUser.getLastReadMessageId();
+        Page<ChatMessage> getMessages;
+        if (lastReadMessageId == null) {
+            getMessages = chatMessageRepository.findLatestMessagesByChatRoom(chatRoom,pageable);
+        }
+        else{
+            getMessages = chatMessageRepository.findMessagesByChatRoomBefore(chatRoom,lastReadMessageId,pageable);
+        }
+
+
+        return ResponseEntity.ok(ApiResponse.success(ChatMessageMapper.toChatMessageDtoPage(getMessages)));
+
+    }
 }
