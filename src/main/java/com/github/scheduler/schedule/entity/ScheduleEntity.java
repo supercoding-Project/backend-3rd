@@ -74,9 +74,6 @@ public class ScheduleEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TodoEntity> todoList = new ArrayList<>();
-
     @Version
     @Column(name = "version")
     private Long version;

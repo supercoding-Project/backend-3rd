@@ -173,7 +173,6 @@ public class ScheduleService {
         // 신규 일정 엔티티 생성
         ScheduleEntity scheduleEntity = ScheduleEntity.builder()
                 .createUserId(customUserDetails.getUserEntity())
-                //.scheduleId(createScheduleDto.getScheduleId())
                 .title(createScheduleDto.getTitle())
                 .location(createScheduleDto.getLocation())
                 .startTime(createScheduleDto.getStartTime())
@@ -240,7 +239,6 @@ public class ScheduleService {
 
         return CreateScheduleDto.builder()
                 .createUserId(saveScheduleEntity.getCreateUserId().getUserId())
-                .scheduleId(saveScheduleEntity.getScheduleId())
                 .title(saveScheduleEntity.getTitle())
                 .location(saveScheduleEntity.getLocation())
                 .startTime(saveScheduleEntity.getStartTime())
