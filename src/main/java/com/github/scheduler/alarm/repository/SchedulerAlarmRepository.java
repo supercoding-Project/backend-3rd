@@ -17,5 +17,6 @@ public interface SchedulerAlarmRepository extends JpaRepository<SchedulerAlarmEn
     boolean existsByScheduleAndTypeAndCreatedAtAfter(ScheduleEntity schedule, String type, LocalDateTime createdAtAfter);
     // 유저의 캘린더 목록 조회
     //List<UserCalendarEntity> findByUserEntity(UserEntity userEntity);
+    List<SchedulerAlarmEntity> findByUser_UserIdAndIsCheckedFalse(Long userId);
 
 }

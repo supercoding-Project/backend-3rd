@@ -12,14 +12,5 @@ import java.util.List;
 @Repository
 public interface SchedulerInvitationAlarmRepository extends JpaRepository<SchedulerInvitationAlarmEntity, Long> {
 
-    // 특정 사용자와 캘린더 ID로 알림을 조회하는 예시
-//    List<SchedulerInvitationAlarmEntity> findByUserIdAndCalendarId(Long userId, Long calendarId);
-//
-//    // 알림 읽음 여부를 업데이트하는 쿼리 메서드 예시
-//    @Modifying
-//    @Query("UPDATE SchedulerInvitationAlarmEntity s SET s.isChecked = true WHERE s.id = :alarmId")
-//    void markAsChecked(@Param("alarmId") Long alarmId);
-//
-//    // 특정 캘린더에 대한 모든 알림을 조회하는 예시
-//    List<SchedulerInvitationAlarmEntity> findByCalendarId(Long calendarId);
+    List<SchedulerInvitationAlarmEntity> findByUser_UserIdAndIsCheckedFalse(Long userId);
 }
