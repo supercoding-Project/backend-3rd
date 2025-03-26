@@ -21,6 +21,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     Page<ChatMessage> findLatestMessagesByChatRoom(ChatRoom chatRoom, Pageable pageable);
 
     // 채팅방의 메시지를 lastReadMessageId 기준으로 size 개수만큼 불러오기
-    @Query("SELECT cm FROM ChatMessage cm WHERE cm.chatRoom = :chatRoom AND cm.id < :lastReadMessageId ORDER BY cm.id ASC ")
+    @Query("SELECT cm FROM ChatMessage cm WHERE cm.chatRoom = :chatRoom AND cm.id >= :lastReadMessageId ORDER BY cm.createdAt ASC ")
     Page<ChatMessage> findMessagesByChatRoomBefore(ChatRoom chatRoom, Long lastReadMessageId, Pageable pageable);
 }
