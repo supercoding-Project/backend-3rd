@@ -1,5 +1,6 @@
 package com.github.scheduler.chat.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.github.scheduler.chat.entity.ChatRoom;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,5 +20,6 @@ public class ChatMessageDto {
     private Long calendarId;
     private Long senderId;
     private String message;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }
