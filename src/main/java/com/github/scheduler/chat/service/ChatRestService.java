@@ -6,10 +6,7 @@ import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.entity.UserCalendarEntity;
 import com.github.scheduler.calendar.repository.CalendarRepository;
 import com.github.scheduler.calendar.repository.UserCalendarRepository;
-import com.github.scheduler.chat.dto.ChatRoomCreate;
-import com.github.scheduler.chat.dto.ChatRoomDto;
-import com.github.scheduler.chat.dto.ChatRoomUserDto;
-import com.github.scheduler.chat.dto.LastReadMessage;
+import com.github.scheduler.chat.dto.*;
 import com.github.scheduler.chat.entity.ChatRoom;
 import com.github.scheduler.chat.entity.ChatRoomUser;
 import com.github.scheduler.chat.event.ChatRoomCreateEvent;
@@ -104,6 +101,7 @@ public class ChatRestService {
     }
 
     public ResponseEntity<ApiResponse<ChatRoomUserDto>> joinRoom(CustomUserDetails customUserDetails, String inviteCode) {
+        // 초대 코드로 캘린더 ID 가져오기
         Long calendarId = inviteCodeService.validateInviteCode(inviteCode);
         log.info("Redis에서 조회된 calendarId: {}", calendarId);
         UserEntity user = customUserDetails.getUserEntity();
@@ -123,6 +121,15 @@ public class ChatRestService {
                 .build());
 
         return ResponseEntity.ok(ApiResponse.success(ChatRoomUserDto.toDto(joinUser)));
+    }
+
+    public ResponseEntity<ApiResponse<List<ChatMessageDto>>> getMessage(CustomUserDetails customUserDetails, ChatMessageGetRequest chatMessageGetRequest) {
+        // user Entity 가져오기
+        // chat room 가져오기
+        // user가 마지막으로 읽은 메시지 ID 가져오기
+        // 1. where req_date <= createdAt <= 현재
+        // 2. 마지막 읽은 메시지 <= messageId <= last Message id
+        return null;
     }
 //    public void updateLastReadMessage(Long roomId, LastReadMessage lastReadMessage, CustomUserDetails customUserDetails) {
 //    }
