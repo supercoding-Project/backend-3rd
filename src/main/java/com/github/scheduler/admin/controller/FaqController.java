@@ -8,6 +8,10 @@ import com.github.scheduler.admin.service.FaqService;
 import com.github.scheduler.global.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,20 +26,22 @@ public class FaqController {
 
     private final FaqService faqService;
 
-    @Operation(summary = "전체 FAQ 조회")
+    @Operation(summary = "전체 FAQ 조회 (검색 & 페이징)")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<FaqListResponseDTO>>> getAllFaqs() {
-        List<FaqListResponseDTO> faqs = faqService.getAllFaqs();
+    public ResponseEntity<ApiResponse<Page<FaqListResponseDTO>>> getAllFaqs(
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 10,sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Page<FaqListResponseDTO> faqs = faqService.getAllFaqs(keyword,pageable);
         return ResponseEntity.ok(ApiResponse.success(faqs));
     }
 
-    @Operation(summary = "FAQ 카테고리별 조회")
+    @Operation(summary = "FAQ 카테고리별 조회 (페이징)")
     @GetMapping(params = "category")
-    public ResponseEntity<ApiResponse<List<FaqListResponseDTO>>> getCategoryFaqs(
-            @RequestParam(required = false) FaqCategory category) {
-        List<FaqListResponseDTO> faqs = (category != null) ?
-                faqService.getFaqsByCategory(category) :
-                faqService.getAllFaqs();
+    public ResponseEntity<ApiResponse<Page<FaqListResponseDTO>>> getCategoryFaqs(
+            @RequestParam(required = false) FaqCategory category,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<FaqListResponseDTO> faqs = faqService.getFaqsByCategory(category,pageable);
         return ResponseEntity.ok(ApiResponse.success(faqs));
     }
 
