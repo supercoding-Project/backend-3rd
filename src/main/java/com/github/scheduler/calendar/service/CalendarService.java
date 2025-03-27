@@ -199,14 +199,14 @@ public class CalendarService {
     public CalendarResponseDto getUserCalendarById(String email, Long calendarId) {
         UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(
-                        () -> new AppException(ErrorCode.NOT_FOUND_USER, "사용자를 찾을 수 없습니다.")
+                        () -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage())
                 );
         CalendarEntity calendarEntity = calendarRepository.findByCalendarId(calendarId).orElseThrow(
                 () -> new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage())
         );
 
         UserCalendarEntity userCalendar = userCalendarRepository.findByUserEntityAndCalendarEntity(userEntity, calendarEntity).orElseThrow(
-                        () -> new AppException(ErrorCode.NOT_FOUND_CALENDAR, "해당 캘린더에 접근 권한이 없습니다.")
+                        () -> new AppException(ErrorCode.UNAUTHORIZED_CALENDAR, ErrorCode.UNAUTHORIZED_CALENDAR.getMessage())
         );
 
         return new CalendarResponseDto(
