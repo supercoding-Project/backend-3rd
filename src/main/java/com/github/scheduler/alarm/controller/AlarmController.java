@@ -5,6 +5,7 @@ import com.github.scheduler.alarm.service.AlarmService;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.global.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ public class AlarmController {
     private final AlarmService alarmService;
 
     @PatchMapping("/{alarmId}")
+    @Operation(summary = "알림 읽음", description = "알림을 읽음처리합니다.")
     public ResponseEntity<ApiResponse<SchedulerAlarmDto>> markAlarmAsRead(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable Long alarmId,
@@ -43,6 +45,7 @@ public class AlarmController {
         return ResponseEntity.ok(ApiResponse.success(alarmService.markAlarmAsRead(userId, alarmId, alarmType)));
     }
 
+    @Operation(summary = "알림 전체조회", description = "읽지않은 알림을 전체조회합니다.")
     @GetMapping("/unread")
     public ResponseEntity<ApiResponse<List<SchedulerAlarmDto>>> getUnreadAlarms(
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
