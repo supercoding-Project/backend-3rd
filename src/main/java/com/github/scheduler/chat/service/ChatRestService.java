@@ -169,7 +169,8 @@ public class ChatRestService {
             getMessages = chatMessageRepository.findLatestMessagesByChatRoom(chatRoom,pageable);
         }
         else{
-            getMessages = chatMessageRepository.findMessagesByChatRoomBefore(chatRoom,lastReadMessageId,pageable);
+            getMessages = chatMessageRepository.findMessagesByChatRoomBefore(chatRoom.getId(),lastReadMessageId,pageable);
+
         }
 
 
