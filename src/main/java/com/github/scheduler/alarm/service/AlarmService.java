@@ -26,6 +26,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -200,21 +201,42 @@ public class AlarmService {
 
     private boolean isScheduleMatching(ScheduleEntity schedule, LocalDateTime now) {
         LocalDateTime startTime = schedule.getStartTime().withSecond(0).withNano(0);
+
         if (schedule.getRepeatType() == RepeatType.NONE) {
             return startTime.equals(now);
         }
+
         if (schedule.getRepeatEndDate() != null && now.toLocalDate().isAfter(schedule.getRepeatEndDate())) {
             return false;
         }
+
+        int interval = schedule.getRepeatInterval(); // 반복 주기
+
         switch (schedule.getRepeatType()) {
             case DAILY:
-                return startTime.getHour() == now.getHour() && startTime.getMinute() == now.getMinute();
+                return ChronoUnit.DAYS.between(startTime.toLocalDate(), now.toLocalDate()) % interval == 0
+                        && startTime.getHour() == now.getHour()
+                        && startTime.getMinute() == now.getMinute();
+
             case WEEKLY:
-                return startTime.getDayOfWeek() == now.getDayOfWeek() && startTime.getHour() == now.getHour() && startTime.getMinute() == now.getMinute();
+                return ChronoUnit.WEEKS.between(startTime.toLocalDate(), now.toLocalDate()) % interval == 0
+                        && startTime.getDayOfWeek() == now.getDayOfWeek()
+                        && startTime.getHour() == now.getHour()
+                        && startTime.getMinute() == now.getMinute();
+
             case MONTHLY:
-                return startTime.getDayOfMonth() == now.getDayOfMonth() && startTime.getHour() == now.getHour() && startTime.getMinute() == now.getMinute();
+                return ChronoUnit.MONTHS.between(startTime.toLocalDate(), now.toLocalDate()) % interval == 0
+                        && startTime.getDayOfMonth() == now.getDayOfMonth()
+                        && startTime.getHour() == now.getHour()
+                        && startTime.getMinute() == now.getMinute();
+
             case YEARLY:
-                return startTime.getMonth() == now.getMonth() && startTime.getDayOfMonth() == now.getDayOfMonth() && startTime.getHour() == now.getHour() && startTime.getMinute() == now.getMinute();
+                return ChronoUnit.YEARS.between(startTime.toLocalDate(), now.toLocalDate()) % interval == 0
+                        && startTime.getMonth() == now.getMonth()
+                        && startTime.getDayOfMonth() == now.getDayOfMonth()
+                        && startTime.getHour() == now.getHour()
+                        && startTime.getMinute() == now.getMinute();
+
             default:
                 return false;
         }
