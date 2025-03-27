@@ -23,11 +23,14 @@ import com.github.scheduler.schedule.repository.ScheduleMentionRepository;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +41,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @RequiredArgsConstructor
 public class ScheduleService {
 
@@ -407,5 +411,4 @@ public class ScheduleService {
             throw new AppException(ErrorCode.NOT_DELETE, ErrorCode.NOT_DELETE.getMessage());
         }
     }
-
 }

@@ -14,12 +14,6 @@ import java.util.List;
 @Repository
 public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> , ScheduleRepositoryCustom {
 
-    List<ScheduleEntity> findByCalendarCalendarIdAndStartTimeBetween(Long calendarCalendarId, LocalDateTime startTimeAfter, LocalDateTime startTimeBefore);
-
-    List<ScheduleEntity> findByStartTimeBetweenAndCalendarCalendarIdIsNotNull(LocalDateTime startDateTime, LocalDateTime endDateTime);
-
-    List<ScheduleEntity> findByStartTimeBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
-
     List<ScheduleEntity> findByCreateUserIdAndStartTimeLessThanEqualAndEndTimeGreaterThanEqual(
             UserEntity createUserId, LocalDateTime now1, LocalDateTime now2);
 
@@ -30,4 +24,5 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
     List<ScheduleEntity> findByCalendar(CalendarEntity calendar);
 
     List<ScheduleEntity> findByCreateUserIdAndScheduleStatusNot(UserEntity createUserId, ScheduleStatus scheduleStatus);
+
 }
