@@ -21,6 +21,6 @@ CREATE TABLE refresh_token (
                                refresh_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                user_id BIGINT NOT NULL UNIQUE,
                                refresh_token VARCHAR(255) NOT NULL UNIQUE,
-                                expiration TIMESTAMP NOT NULL,
+                               expiration TIMESTAMP NOT NULL,
                                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

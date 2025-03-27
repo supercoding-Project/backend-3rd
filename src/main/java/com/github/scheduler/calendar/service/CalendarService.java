@@ -194,6 +194,32 @@ public class CalendarService {
                 .collect(Collectors.toList());
     }
 
+    // 특정 단일 캘린더 조회
+    @Transactional(readOnly = true)
+    public CalendarResponseDto getUserCalendarById(String email, Long calendarId) {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(
+                        () -> new AppException(ErrorCode.NOT_FOUND_USER, ErrorCode.NOT_FOUND_USER.getMessage())
+                );
+        CalendarEntity calendarEntity = calendarRepository.findByCalendarId(calendarId).orElseThrow(
+                () -> new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage())
+        );
+
+        UserCalendarEntity userCalendar = userCalendarRepository.findByUserEntityAndCalendarEntity(userEntity, calendarEntity).orElseThrow(
+                        () -> new AppException(ErrorCode.UNAUTHORIZED_CALENDAR, ErrorCode.UNAUTHORIZED_CALENDAR.getMessage())
+        );
+
+        return new CalendarResponseDto(
+                calendarEntity.getCalendarId(),
+                calendarEntity.getCalendarName(),
+                calendarEntity.getCalendarDescription(),
+                calendarEntity.getCalendarType().getType(),
+                userCalendar.getRole().getType(),
+                calendarEntity.getCalendarColor(),
+                calendarEntity.getCreatedAt()
+        );
+    }
+
     // 캘린더 소유권 이전
     @Transactional
     public void transferCalendarOwnerships(UserEntity userEntity) {
