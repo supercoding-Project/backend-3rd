@@ -32,34 +32,34 @@ public class SwaggerConfig {
                                         .bearerFormat("JWT")));
     }
 
-    @Bean
-    public OpenApiCustomizer scheduleExampleCustomizer() {
-        return openApi -> {
-            var pathItem = openApi.getPaths().get("/api/v1/schedules");
-            if (pathItem != null && pathItem.getPost() != null) {
-                pathItem.getPost()
-                        .getRequestBody()
-                        .getContent()
-                        .get("application/json")
-                        .addExamples("default", new Example().value("""
-                    {
-                      "createUserId": 0,
-                      "calendarId": 0,
-                      "title": "string",
-                      "location": "string",
-                      "startTime": "YYYY-MM-DD hh:mm:ss",
-                      "endTime": "YYYY-MM-DD hh:mm:ss",
-                      "repeatSchedule": {
-                        "repeatType": "NONE(반복 없음)",
-                        "repeatInterval": 0,
-                        "repeatEndDate": null
-                      },
-                      "memo": "string",
-                      "mentionUserIds": [0]
-                    }
-                    """));
-            }
-        };
-    }
+//    @Bean
+//    public OpenApiCustomizer scheduleExampleCustomizer() {
+//        return openApi -> {
+//            var pathItem = openApi.getPaths().get("/api/v1/schedules");
+//            if (pathItem != null && pathItem.getPost() != null) {
+//                pathItem.getPost()
+//                        .getRequestBody()
+//                        .getContent()
+//                        .get("application/json")
+//                        .addExamples("default", new Example().value("""
+//                    {
+//                      "createUserId": 0,
+//                      "calendarId": 0,
+//                      "title": "string",
+//                      "location": "string",
+//                      "startTime": "YYYY-MM-DD hh:mm:ss",
+//                      "endTime": "YYYY-MM-DD hh:mm:ss",
+//                      "repeatSchedule": {
+//                        "repeatType": "NONE(반복 없음)",
+//                        "repeatInterval": 0,
+//                        "repeatEndDate": null
+//                      },
+//                      "memo": "string",
+//                      "mentionUserIds": [0]
+//                    }
+//                    """));
+//            }
+//        };
+//    }
 
 }
