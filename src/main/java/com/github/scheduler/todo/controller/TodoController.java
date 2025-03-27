@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -43,6 +44,10 @@ public class TodoController {
 
         if (calendarId == null) {
             throw new AppException(ErrorCode.NOT_FOUND_CALENDAR, ErrorCode.NOT_FOUND_CALENDAR.getMessage());
+        }
+
+        if (date == null || date.isEmpty()) {
+            date = LocalDate.now().toString();
         }
 
         List<TodoResponseDto> todoResponse = todoService.getTodo(customUserDetails, view, date, calendarId);

@@ -18,7 +18,7 @@ public class ChatMessageMapper {
                 .createdAt(chatMessage.getCreatedAt())
                 .build();
     }
-    public static Page<ChatMessageDto> toChatMessageDtoPage(Page<ChatMessage> chatMessages) {
-        return chatMessages.map(ChatMessageMapper::toChatMessageDto);
+    public static List<ChatMessageDto> toChatMessageDtoPage(List<ChatMessage> chatMessages) {
+        return chatMessages.stream().map(ChatMessageMapper::toChatMessageDto).toList();
     }
 }

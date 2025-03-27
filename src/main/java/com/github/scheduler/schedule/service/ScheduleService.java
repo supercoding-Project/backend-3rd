@@ -23,8 +23,14 @@ import com.github.scheduler.schedule.repository.ScheduleMentionRepository;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +41,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @RequiredArgsConstructor
 public class ScheduleService {
 
@@ -249,6 +256,11 @@ public class ScheduleService {
     }
 
     //일정 수정
+    @Retryable(
+            value = {OptimisticLockingFailureException.class},
+            maxAttempts = 3, //최대 재시도 횟수
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     @Transactional
     public List<UpdateScheduleDto> updateSchedule(CustomUserDetails customUserDetails, UpdateScheduleDto updateScheduleDto, Long scheduleId, Long calendarId) {
 
@@ -324,6 +336,13 @@ public class ScheduleService {
         }
     }
 
+    @Recover // 최대 재시도 횟수를 넘어갈 시 예외 발생
+    public List<UpdateScheduleDto> recoverSchedule(OptimisticLockingFailureException exception, CustomUserDetails customUserDetails,
+                                                   UpdateScheduleDto updateScheduleDto, Long scheduleId, Long calendarId) {
+        eventPublisher.publishEvent(new UpdateScheduleEvent(scheduleId, "동시 수정 충돌로 인해 업데이트에 실패하였습니다.", false));
+        throw new AppException(ErrorCode.NOT_UPDATE, ErrorCode.NOT_UPDATE.getMessage());
+    }
+
     private UpdateScheduleDto convertScheduleEntityToUpdateScheduleDto(ScheduleEntity savedEntity) {
         RepeatScheduleDto repeatScheduleDto = RepeatScheduleDto.builder()
                 .repeatType(savedEntity.getRepeatType().name())
@@ -392,5 +411,4 @@ public class ScheduleService {
             throw new AppException(ErrorCode.NOT_DELETE, ErrorCode.NOT_DELETE.getMessage());
         }
     }
-
 }

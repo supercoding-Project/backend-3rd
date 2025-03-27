@@ -16,11 +16,14 @@ public class UpdateScheduleDto {
     private Long calendarId;
     private String title;
     private String location;
+    private String memo;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
+
     private RepeatScheduleDto repeatSchedule;
-    private String memo;
     private List<Long> mentionUserIds;
 }
