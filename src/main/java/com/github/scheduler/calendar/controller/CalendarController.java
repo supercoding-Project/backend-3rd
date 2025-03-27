@@ -64,6 +64,7 @@ public class CalendarController {
 
         return ResponseEntity.ok(calendarService.sendInviteCodesByEmail(calendarId, ownerEmail, inviteRequestDto.getEmailList()));
     }
+
     @Operation(summary = "초대코드 입력 후 캘린더 가입", description = "이메일로 받은 초대코드를 입력하여 공용캘린더에 가입")
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/v1/calendar/join")
@@ -96,6 +97,20 @@ public class CalendarController {
         List<CalendarResponseDto> calendarResponseDtoList = calendarService.getUserCalendars(email);
 
         return ResponseEntity.ok(ApiResponse.success(calendarResponseDtoList));
+    }
+
+    @Operation(summary = "단일 캘린더 조회", description = "캘린더 ID를 통한 단일 캘린더 조회")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/v1/calendars/{calendarId}")
+    public ResponseEntity<ApiResponse<CalendarResponseDto>> getUserCalendarById(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @PathVariable Long calendarId
+    ) {
+        String email = customUserDetails.getUsername();
+
+        CalendarResponseDto calendarResponseDto = calendarService.getUserCalendarById(email, calendarId);
+
+        return ResponseEntity.ok(ApiResponse.success(calendarResponseDto));
     }
 
     @Operation(summary = "캘린더에 속한 유저 조회", description = "공용 캘린더에 속한 모든 유저를 조회합니다.")
