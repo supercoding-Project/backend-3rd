@@ -29,4 +29,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
             AND cm.createdAt >= :joinedAt ORDER BY cm.createdAt DESC
     """)
     Page<ChatMessage> findPreviousMessagesWithPagination(ChatRoom chatRoom, Long lastReadMessageId, LocalDateTime joinedAt, Pageable pageable);
+
+    Integer countByChatRoomAndIdGreaterThan(ChatRoom chatRoom, Long idIsGreaterThan);
 }

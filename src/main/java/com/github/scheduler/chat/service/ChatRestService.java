@@ -156,7 +156,7 @@ public class ChatRestService {
 
     @Transactional
     public ResponseEntity<ApiResponse<List<ChatMessageDto>>> getLoadMessage(CustomUserDetails customUserDetails, Long roomId, Integer page) {
-        Pageable pageable = PageRequest.of(page, 5, Sort.by("createdAt").ascending());
+        Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").ascending());
         UserEntity user = customUserDetails.getUserEntity();
         // chatRoom 조회
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
@@ -181,5 +181,32 @@ public class ChatRestService {
         }
 
         return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    public ResponseEntity<ApiResponse<Integer>> getUnreadMessages(CustomUserDetails customUserDetails, Long roomId) {
+        UserEntity user = customUserDetails.getUserEntity();
+        // chatRoom 조회
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
+        // chatRoomUser 조회
+        ChatRoomUser chatRoomUser = chatRoomUserRepository.findByChatRoomAndUser(chatRoom,user)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage()));
+        Long lastReadMessageId = chatRoomUser.getLastReadMessageId();
+
+        Integer count = chatMessageRepository.countByChatRoomAndIdGreaterThan(chatRoom,lastReadMessageId);
+
+        return ResponseEntity.ok(ApiResponse.success(count));
+    }
+
+    public ResponseEntity<ApiResponse<String>> deleteChatRoom(CustomUserDetails customUserDetails, Long roomId) {
+        // 채팅방 가져오기
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_CHATROOM,ErrorCode.NOT_FOUND_CHATROOM.getMessage()));
+        // 삭제 권한 검증
+        ChatRoomUser validUser = chatRoomUserRepository.findByChatRoomAndUser(chatRoom,customUserDetails.getUserEntity())
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_AUTHORIZED_USER,ErrorCode.NOT_AUTHORIZED_USER.getMessage()));
+
+        chatRoomRepository.delete(chatRoom);
+        return ResponseEntity.ok(ApiResponse.success("success"));
     }
 }
