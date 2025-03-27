@@ -183,6 +183,7 @@ public class ChatRestService {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
+    @Transactional
     public ResponseEntity<ApiResponse<Integer>> getUnreadMessages(CustomUserDetails customUserDetails, Long roomId) {
         UserEntity user = customUserDetails.getUserEntity();
         // chatRoom 조회
@@ -197,7 +198,7 @@ public class ChatRestService {
 
         return ResponseEntity.ok(ApiResponse.success(count));
     }
-
+    @Transactional
     public ResponseEntity<ApiResponse<String>> deleteChatRoom(CustomUserDetails customUserDetails, Long roomId) {
         // 채팅방 가져오기
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
