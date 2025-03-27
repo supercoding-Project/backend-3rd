@@ -98,22 +98,38 @@ public class ChatRestController {
     }
     // todo
     // 메시지 조회
-    @Operation(summary = "채팅 메시지 조회",
-            description = "유저가 채팅방에 join한 시점 이후로만 조회가 가능, 안읽은 메시지 + 이전 10개 조회")
-    @GetMapping("/message/unread/{roomId}")
-    public ResponseEntity<ApiResponse<Page<ChatMessageDto>>> sendMessage(
+//    @Operation(summary = "채팅 메시지 조회",
+//            description = "유저가 채팅방에 join한 시점 이후로만 조회가 가능, 안읽은 메시지 + 이전 10개 조회")
+//    @GetMapping("/message/unread/{roomId}")
+//    public ResponseEntity<ApiResponse<Page<ChatMessageDto>>> sendMessage(
+//            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+//            @PathVariable Long roomId ) {
+//        if (customUserDetails == null) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(ApiResponse.fail(ErrorCode.UNAUTHORIZED_ACCESS));
+//        }
+//        log.info("메시지 조회할 채팅방: {}",roomId);
+//
+//        return chatRestService.getUnreadMessages(customUserDetails,roomId);
+//    }
+
+    //메시지 불러오기
+    @Operation(summary = "과거 채팅 메시지 불러오기",
+            description = "로드된 첫번째 메시지 보다 더 이전의 메시지를 조회")
+    @GetMapping("/message/load/{roomId}")
+    public ResponseEntity<ApiResponse<List<ChatMessageDto>>> loadMessages(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @PathVariable Long roomId ) {
+            @PathVariable Long roomId,
+            @Parameter(name = "pageNumber", description = "안읽은 메시지의 이전 메시지 페이지 번호", example = "0")
+            @RequestParam Integer pageNumber) {
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.fail(ErrorCode.UNAUTHORIZED_ACCESS));
         }
-        log.info("메시지 조회할 채팅방: {}",roomId);
+        log.info("메시지 조회할 채팅방 : {}, 첫번째 메시지 ID: {}",roomId,pageNumber);
+        return chatRestService.getLoadMessage(customUserDetails,roomId,pageNumber);
 
-        return chatRestService.getUnreadMessages(customUserDetails,roomId);
     }
-
-    //
 
 
 

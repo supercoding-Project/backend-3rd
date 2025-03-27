@@ -28,11 +28,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -150,11 +153,10 @@ public class ChatRestService {
         return ResponseEntity.ok(ApiResponse.success("success"));
 
     }
-    @Transactional
-    public ResponseEntity<ApiResponse<Page<ChatMessageDto>>> getUnreadMessages(CustomUserDetails customUserDetails, Long roomId) {
 
-        Pageable pageable = PageRequest.of(0, 10);
-        // user 조회
+    @Transactional
+    public ResponseEntity<ApiResponse<List<ChatMessageDto>>> getLoadMessage(CustomUserDetails customUserDetails, Long roomId, Integer page) {
+        Pageable pageable = PageRequest.of(page, 5, Sort.by("createdAt").ascending());
         UserEntity user = customUserDetails.getUserEntity();
         // chatRoom 조회
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
@@ -162,19 +164,22 @@ public class ChatRestService {
         // chatRoomUser 조회
         ChatRoomUser chatRoomUser = chatRoomUserRepository.findByChatRoomAndUser(chatRoom,user)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_USER,ErrorCode.NOT_FOUND_USER.getMessage()));
-        // lastRead message id
         Long lastReadMessageId = chatRoomUser.getLastReadMessageId();
-        Page<ChatMessage> getMessages;
-        if (lastReadMessageId == null) {
-            getMessages = chatMessageRepository.findLatestMessagesByChatRoom(chatRoom,pageable);
+        // 안읽은 메시지 가져오기
+        List<ChatMessage> getMessages = new ArrayList<>();
+        if (lastReadMessageId != null) {
+            getMessages = chatMessageRepository.findMessagesByChatRoomBefore(chatRoom,lastReadMessageId);
         }
-        else{
-            getMessages = chatMessageRepository.findMessagesByChatRoomBefore(chatRoom.getId(),lastReadMessageId,pageable);
+        // 안읽은 메시지보다 더 이전의 메시지 불러오기
+        Page<ChatMessage> previousMessages = chatMessageRepository.findPreviousMessagesWithPagination(chatRoom, lastReadMessageId,chatRoomUser.getJoinedAt(), pageable);
+        List<ChatMessageDto> result = new ArrayList<>();
 
+        //
+        result.addAll(ChatMessageMapper.toChatMessageDtoPage(previousMessages.getContent().stream().sorted(Comparator.comparing(ChatMessage::getCreatedAt)).toList()));
+        if (page == 0) {
+            result.addAll(ChatMessageMapper.toChatMessageDtoPage(getMessages));
         }
 
-
-        return ResponseEntity.ok(ApiResponse.success(ChatMessageMapper.toChatMessageDtoPage(getMessages)));
-
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 }
