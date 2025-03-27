@@ -30,7 +30,7 @@ public class ChatSocketController {
         server.addDisconnectListener(chatService::onDisconnect);
         // 채팅방 이벤트 리스너
         //server.addEventListener("createRoom",ChatRoomCreate.class,chatService::createRoom);
-        server.addEventListener("joinRoom", ChatRoomJoinRequest.class,chatService::joinRoom);
+        //server.addEventListener("joinRoom", ChatRoomJoinRequest.class,chatService::joinRoom);
         // 메시지 이벤트 리스너
         server.addEventListener("sendMessage", ChatMessageRequest.class,chatService::sendMessage);
     }
