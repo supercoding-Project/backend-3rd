@@ -11,9 +11,14 @@ import com.github.scheduler.global.util.PasswordUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -25,10 +30,12 @@ public class AdminUserService {
     private final UserRepository userRepository;
     private final PasswordUtil passwordUtil;
 
-    public List<AdminUserResponseDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(AdminUserResponseDTO::from)
-                .collect(Collectors.toList());
+    public Page<AdminUserResponseDTO> searchUsers(String keyword, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() :null;
+        LocalDateTime endDateTime = (endDate != null) ? endDate.atStartOfDay() :null;
+
+        return userRepository.searchUsers(keyword,startDateTime,endDateTime,pageable)
+                .map(AdminUserResponseDTO::from);
     }
 
     public AdminUserDetailResponseDTO getUser(long id) {
@@ -37,7 +44,7 @@ public class AdminUserService {
         return AdminUserDetailResponseDTO.from(user);
     }
 
-    public void updateUserStatus(long id, AdminUserUpdateDTO dto) {
+    public void updateUser(long id, AdminUserUpdateDTO dto) {
         UserEntity user = userRepository.findById(id)
                  .orElseThrow(() -> new AppException(ErrorCode.ADMIN_USER_NOT_FOUND,ErrorCode.ADMIN_USER_NOT_FOUND.getMessage()));
 
@@ -54,9 +61,12 @@ public class AdminUserService {
         }
 
         if (Boolean.TRUE.equals(dto.getResetPassword())) {
-            String tempPassword = "reset1234!"; // 고정값
+            String tempPassword = UUID.randomUUID().toString().substring(0, 8);  // 8자리 랜덤 생성
+            String encodedPassword = passwordUtil.encrypt(tempPassword);
+
             log.info("✅[임시 비밀번호 발급] : " + tempPassword);
-            user.changePassword(passwordUtil.encrypt(tempPassword));
+
+            user.changePassword(encodedPassword);
         }
 
         userRepository.save(user);

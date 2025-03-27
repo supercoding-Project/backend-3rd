@@ -50,10 +50,12 @@ public class ChatService {
         // user 찾기
         UserEntity user = findUserById(request.getUserId());
         // 중복 찾기
-        ChatRoomUser existUser = chatRoomUserRepository.findByChatRoomAndUser(chatRoom,user);
-        if (existUser != null) {
-            throw new AppException(ErrorCode.DUPLICATED_CHATROOM_USER,ErrorCode.DUPLICATED_CHATROOM_USER.getMessage());
-        }
+        chatRoomUserRepository.findByChatRoomAndUser(chatRoom,user)
+                .ifPresent(chatRoomUser -> {
+                    throw new AppException(ErrorCode.DUPLICATED_CHATROOM_USER,ErrorCode.DUPLICATED_CHATROOM_USER.getMessage());
+                });
+
+        // 새로운 채팅방 유저 등록
         ChatRoomUser chatRoomUser = ChatRoomUser.builder()
                 .chatRoom(chatRoom)
                 .user(user)
