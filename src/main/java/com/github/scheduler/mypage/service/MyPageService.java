@@ -93,7 +93,7 @@ public class MyPageService {
 
         if (existingImage != null) {
             String newImageUrl = "";
-            if(file.isEmpty()) {
+            if (file == null || file.isEmpty()) {
                 newImageUrl = "/uploads/profiles/base.png";
             }else{
                 awsFileService.deletePhoto(existingImage.getUrl());
@@ -108,10 +108,9 @@ public class MyPageService {
                 .name(managedUser.getUsername())
                 .email(managedUser.getEmail())
                 .phone(managedUser.getPhone())
-                .userImageUrl(existingImage != null ? existingImage.getUrl() : null)  // URL을 업데이트된 값으로 반환
+                .userImageUrl(existingImage != null ? existingImage.getUrl() : null)
                 .build();
     }
-
 
     // 비밀번호 수정
     @Transactional

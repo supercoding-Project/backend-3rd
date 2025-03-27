@@ -5,11 +5,16 @@ import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.global.dto.ApiResponse;
 import com.github.scheduler.mypage.service.MyPageService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,10 +58,17 @@ public class MyPageController {
     }
 
     @Operation(summary = "프로필 이미지 수정", description = "프로필 이미지를 별도로 수정합니다.")
-    @PutMapping("/profileImage")
+    @PutMapping(value = "/profileImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<UserDto>> updateUserProfileImage(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @RequestParam("file") MultipartFile file) {
+            @Parameter(
+                    description = "회원 프로필 이미지 파일",
+                    content = @Content(
+                            mediaType = "image/png",
+                            schema = @Schema(type = "string", format = "binary")
+                    )
+            )
+            @RequestPart(value = "image", required = false) MultipartFile file) {
 
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
