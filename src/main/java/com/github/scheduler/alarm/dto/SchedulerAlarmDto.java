@@ -8,6 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SchedulerAlarmDto {
+    private Long alarmId;
     private Long userId;
     private Long calendarId;
     private Long eventId;
@@ -17,7 +18,8 @@ public class SchedulerAlarmDto {
     @Override
     public String toString() {
         return "SchedulerAlarmDto{" +
-                "userId=" + userId +
+                "alarmId=" + alarmId +
+                ", userId=" + userId +
                 ", calendarId=" + calendarId +
                 ", eventId=" + eventId +
                 ", type='" + type + '\'' +
