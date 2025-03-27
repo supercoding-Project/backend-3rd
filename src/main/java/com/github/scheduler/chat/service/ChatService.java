@@ -89,7 +89,6 @@ public class ChatService {
                         .chatRoom(chatRoom)
                         .sendUser(sender)
                         .message(request.getMessage())
-                        .fileURL(request.getFileURL() != null ? request.getFileURL().orElse(null):null)
                         .build()
         );
         ChatMessageDto chatMessageDto = ChatMessageDto.builder()

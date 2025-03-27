@@ -15,5 +15,4 @@ public class ChatMessageRequest {
     private Long roomId;
     private Long sendUserId;
     private String message;
-    private Optional<String> fileURL = Optional.empty();
 }
