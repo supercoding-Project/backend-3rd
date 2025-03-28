@@ -10,6 +10,7 @@ import com.github.scheduler.todo.dto.TodoResponseDto;
 import com.github.scheduler.todo.dto.TodoUpdateDto;
 import com.github.scheduler.todo.service.TodoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ public class TodoController {
     public ResponseEntity<ApiResponse<List<TodoResponseDto>>> getTodo(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(name = "view", defaultValue = "MONTHLY") String view,
+            @Parameter(required = false, description = "조회할 날짜 (yyyy-MM-dd, 기본값: 오늘)")
             @RequestParam(name = "date", required = false,  defaultValue = "") String date,
             @RequestParam(name = "calendarId") List<Long> calendarId) {
 
