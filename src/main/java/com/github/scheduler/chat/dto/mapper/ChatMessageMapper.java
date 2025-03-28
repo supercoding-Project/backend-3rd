@@ -14,6 +14,7 @@ public class ChatMessageMapper {
                 .chatRoomId(chatMessage.getChatRoom().getId())
                 .calendarId(chatMessage.getChatRoom().getCalendar().getCalendarId())
                 .senderId(chatMessage.getSendUser().getUserId())
+                .senderName(chatMessage.getSendUser().getUsername())
                 .message(chatMessage.getMessage())
                 .createdAt(chatMessage.getCreatedAt())
                 .build();
