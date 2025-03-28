@@ -35,7 +35,7 @@ public class TodoController {
     public ResponseEntity<ApiResponse<List<TodoResponseDto>>> getTodo(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @RequestParam(name = "view", defaultValue = "MONTHLY") String view,
-            @RequestParam(name = "date") String date,
+            @RequestParam(name = "date", required = false,  defaultValue = "") String date,
             @RequestParam(name = "calendarId") List<Long> calendarId) {
 
         if (customUserDetails == null) {
