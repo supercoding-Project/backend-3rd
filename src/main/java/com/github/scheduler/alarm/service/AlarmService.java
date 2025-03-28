@@ -210,7 +210,10 @@ public class AlarmService {
             return false;
         }
 
-        int interval = schedule.getRepeatInterval(); // 반복 주기
+        int interval = schedule.getRepeatInterval();
+        if (interval <= 0) {
+            interval = 1;
+        }
 
         switch (schedule.getRepeatType()) {
             case DAILY:
