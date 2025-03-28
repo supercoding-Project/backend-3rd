@@ -19,6 +19,7 @@ public class ChatMessageDto {
     private Long chatRoomId;
     private Long calendarId;
     private Long senderId;
+    private String senderName;
     private String message;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
