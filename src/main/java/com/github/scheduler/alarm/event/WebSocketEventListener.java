@@ -2,10 +2,11 @@ package com.github.scheduler.alarm.event;
 
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.auth.repository.UserRepository;
-import com.github.scheduler.global.config.alarm.WebSocketSessionManager;
+import com.github.scheduler.global.config.alarm.SessionManager;
 import com.github.scheduler.global.config.auth.JwtTokenProvider;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,18 +15,16 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 @Slf4j
 @Component
 public class WebSocketEventListener {
-    private final WebSocketSessionManager sessionManager;
+    @Autowired
+    private final SessionManager sessionManager;
+    @Autowired
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
-    public WebSocketEventListener(WebSocketSessionManager sessionManager, JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
+    public WebSocketEventListener(SessionManager sessionManager, JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
         this.sessionManager = sessionManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
@@ -59,7 +58,7 @@ public class WebSocketEventListener {
             String sessionId = headerAccessor.getSessionId();
 
             // ✅ 세션에 사용자 추가
-            sessionManager.addSession(userId);
+            sessionManager.addSession(userId, sessionId);
             if (headerAccessor.getSessionAttributes() != null) {
                 headerAccessor.getSessionAttributes().put("userId", userId);
             }

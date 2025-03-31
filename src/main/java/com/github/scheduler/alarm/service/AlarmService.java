@@ -11,7 +11,7 @@ import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.entity.CalendarType;
 import com.github.scheduler.calendar.entity.UserCalendarEntity;
-import com.github.scheduler.global.config.alarm.WebSocketSessionManager;
+import com.github.scheduler.global.config.alarm.SessionManager;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.schedule.entity.RepeatType;
@@ -42,7 +42,7 @@ public class AlarmService {
     private final ScheduleRepository scheduleRepository;
     @Autowired
     private final SimpMessagingTemplate messagingTemplate;
-    private final WebSocketSessionManager sessionManager;
+    private final SessionManager sessionManager;
 
     // 읽음처리
     @Transactional

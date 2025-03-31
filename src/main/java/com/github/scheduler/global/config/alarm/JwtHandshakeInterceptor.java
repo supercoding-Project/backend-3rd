@@ -4,12 +4,14 @@ import com.github.scheduler.global.config.auth.JwtTokenProvider;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetails;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetailsServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import java.util.Map;
@@ -19,11 +21,11 @@ import java.util.Map;
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsServiceImpl userDetailsService;
-    private final WebSocketSessionManager sessionManager;
+    private final SessionManager sessionManager;
 
     public JwtHandshakeInterceptor(JwtTokenProvider jwtTokenProvider,
                                    CustomUserDetailsServiceImpl userDetailsService,
-                                   WebSocketSessionManager sessionManager) {
+                                   SessionManager sessionManager) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
         this.sessionManager = sessionManager;
@@ -53,8 +55,8 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                     attributes.put("userDetails", userDetails);
                     log.info("웹소켓 핸드셰이크 성공: 사용자 이메일 - {}", email);
 
-                    // 세션 정보를 sessionManager에 저장
-                    sessionManager.addSession(userDetails.getUserEntity().getUserId());
+                    sessionManager.addSession(userDetails.getUserEntity().getUserId(), attributes.get("userDetails").toString());
+                    log.info("세션 추가됨: 사용자 ID - {}", userDetails.getUserEntity().getUserId());
 
                     return true;
                 }
