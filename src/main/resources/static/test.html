@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h1>WebSocket 연결 테스트</h1>
+
+<button onclick="connect()">WebSocket 연결</button>
+<button onclick="sendMessage()">메시지 전송</button>
+<button onclick="disconnect()">WebSocket 연결 종료</button>
+
+<div id="status"></div>
+<div id="message"></div>
+
+<script>
+    let stompClient = null;
+
+    function connect() {
+        const token = localStorage.getItem("access_token"); // JWT 토큰 가져오기
+
+        if (!token) {
+            console.error("❌ JWT 토큰이 없습니다.");
+            document.getElementById("status").innerText = "JWT 토큰이 없습니다.";
+            return;
+        }
+
+        console.log("🔑 토큰: ", token);
+
+        // ✅ Query Parameter를 사용하여 WebSocket 연결 시 토큰 전달
+        const socket = new SockJS(`http://localhost:8080/ws?token=${token}`);
+        stompClient = Stomp.over(socket);
+        const headers = {
+            Authorization: 'Bearer ' + token // JWT 토큰 또는 다른 인증 토큰을 헤더에 추가
+        };
+        stompClient.connect(headers, function(frame) {
+            console.log('✅ WebSocket 연결됨: ' + frame);
+            document.getElementById("status").innerText = "WebSocket 연결됨!";
+
+            // ✅ 서버 메시지 구독
+            stompClient.subscribe('/user/queue/alarms', function(messageOutput) {
+                console.log("📩 새 메시지 수신:", messageOutput.body);
+                document.getElementById("message").innerText = "수신한 메시지: " + messageOutput.body;
+            });
+        }, function(error) {
+            console.error('❌ WebSocket 연결 실패:', error);
+            document.getElementById("status").innerText = "WebSocket 연결 실패!";
+        });
+    }
+
+    function sendMessage() {
+        if (stompClient && stompClient.connected) {
+            const message = { message: "Hello WebSocket!" };
+            stompClient.send("/topic/alarms", {}, JSON.stringify(message));
+            console.log("📩 메시지 전송됨:", message);
+        } else {
+            console.warn("🚨 WebSocket이 연결되지 않았습니다.");
+        }
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect(function() {
+                console.log('❌ WebSocket 연결 종료됨');
+                document.getElementById("status").innerText = "WebSocket 연결 종료됨!";
+            });
+        }
+    }
+</script>
+</body>
+</html>
