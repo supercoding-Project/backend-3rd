@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>알림 WebSocket 테스트</title>
+</head>
+<body>
+<h1>알림 WebSocket 테스트</h1>
+<input id="token" placeholder="JWT 토큰 입력" style="width: 300px;">
+<button onclick="connectSocket()">연결하기</button>
+<ul id="messages"></ul>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+  let socket;
+
+  function connectSocket() {
+    const token = document.getElementById("token").value;
+    if (!token) {
+      alert("토큰을 입력해주세요.");
+      return;
+    }
+
+    // 알림 서버 포트에 연결
+    socket = io("ws://localhost:9093", {
+      query: { token: token },
+      transports: ["websocket"]
+    });
+
+    socket.on("connect", () => {
+      console.log("알림 서버에 연결되었습니다.");
+      appendMessage("✅ 연결 성공");
+    });
+
+    socket.on("disconnect", () => {
+      console.log("연결이 끊어졌습니다.");
+      appendMessage("❌ 연결 해제");
+    });
+
+    socket.on("receiveAlarm", (data) => {
+      console.log("알림 수신:", data);
+      appendMessage(`📬 알림 도착: ${JSON.stringify(data)}`);
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("연결 오류:", error);
+      appendMessage("⚠️ 연결 오류: " + error.message);
+    });
+  }
+
+  function appendMessage(message) {
+    const li = document.createElement("li");
+    li.innerText = message;
+    document.getElementById("messages").appendChild(li);
+  }
+</script>
+</body>
+</html>

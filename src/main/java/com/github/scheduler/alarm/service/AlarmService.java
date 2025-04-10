@@ -1,9 +1,13 @@
 package com.github.scheduler.alarm.service;
 
 
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOServer;
+import com.github.scheduler.alarm.dto.ResponseAlarmDto;
 import com.github.scheduler.alarm.dto.SchedulerAlarmDto;
 import com.github.scheduler.alarm.entity.SchedulerAlarmEntity;
 import com.github.scheduler.alarm.entity.SchedulerInvitationAlarmEntity;
+import com.github.scheduler.alarm.event.AlarmCreatedEvent;
 import com.github.scheduler.alarm.repository.SchedulerAlarmRepository;
 import com.github.scheduler.alarm.repository.SchedulerInvitationAlarmRepository;
 import com.github.scheduler.auth.entity.UserEntity;
@@ -11,16 +15,18 @@ import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.entity.CalendarType;
 import com.github.scheduler.calendar.entity.UserCalendarEntity;
-import com.github.scheduler.global.config.alarm.SessionManager;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.schedule.entity.RepeatType;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
+import com.github.scheduler.schedule.entity.ScheduleMentionEntity;
 import com.github.scheduler.schedule.repository.ScheduleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -40,9 +46,8 @@ public class AlarmService {
     private final SchedulerInvitationAlarmRepository schedulerInvitationAlarmRepository;  // 초대 알림 리포지토리
     private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
-    @Autowired
-    private final SimpMessagingTemplate messagingTemplate;
-    private final SessionManager sessionManager;
+    private final ApplicationEventPublisher eventPublisher;
+    private final SocketIOServer socketIOServer;
 
     // 읽음처리
     @Transactional
@@ -96,16 +101,27 @@ public class AlarmService {
 
     @Transactional
     public void sendAlarmToUser(String userEmail, SchedulerAlarmEntity alarm) {
-        SchedulerAlarmDto alarmDto = new SchedulerAlarmDto(
+        List<ScheduleMentionEntity> mentions = alarm.getSchedule().getMentions();
+        int mentionCount = (mentions == null || mentions.isEmpty()) ? 0 : mentions.size();
+        ResponseAlarmDto alarmDto = new ResponseAlarmDto(
                 alarm.getId(),
-                alarm.getUser().getUserId(),
-                alarm.getCalendar().getCalendarId(),
-                alarm.getSchedule().getScheduleId(),
                 alarm.getType(),
+                alarm.getCalendar().getCalendarName(),
+                alarm.getSchedule().getTitle(),
+                alarm.getSchedule().getLocation(),
+                mentionCount,
+                alarm.getSchedule().getStartTime(),
                 alarm.isChecked()
         );
-        messagingTemplate.convertAndSendToUser(userEmail, "/queue/alarms", alarmDto);
-        log.info("알림 전송: {} -> {}, {}", alarm.getType(), userEmail, alarmDto);
+
+        for (SocketIOClient client : socketIOServer.getAllClients()) {
+            Long userId = userRepository.findByEmail(userEmail).get().getUserId();
+            Long connectedUserId = client.get("userId");  // 연결할 때 set한 값
+            if (userId.equals(connectedUserId)) {
+                client.sendEvent("receiveAlarm", alarmDto);  // 클라이언트로 이벤트 전송
+                log.info("알람 전송 완료 -> {}, {}", userId, alarmDto);
+            }
+        }
     }
 
 
@@ -148,7 +164,7 @@ public class AlarmService {
                     type,
                     invitationAlarm.isChecked()
             );
-            messagingTemplate.convertAndSendToUser(user.getEmail(), "/queue/alarms", invitationAlarmDto);
+            //messagingTemplate.convertAndSendToUser(user.getEmail(), "/queue/alarms", invitationAlarmDto);
             log.info("초대 알림 저장 완료: id={} -> {}, {}", invitationAlarm.getId(), user.getEmail(), invitationAlarmDto);
         } catch (Exception e) {
             log.error("초대 알림 저장 실패: {}", e.getMessage());
@@ -160,7 +176,7 @@ public class AlarmService {
     @Scheduled(cron = "0 * * * * *") // 매분마다 실행
     public void checkAndSendScheduleAlarms() {
         try {
-            Set<Long> onlineUserIds = sessionManager.getConnectedUsers(); // 접속된 사용자들
+           // Set<Long> onlineUserIds = sessionManager.getConnectedUsers(); // 접속된 사용자들
             LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
 
             log.info("현재 시간: {}", now);
@@ -174,7 +190,7 @@ public class AlarmService {
                 List<UserEntity> recipients = getRecipients(schedule);
                 for (UserEntity recipient : recipients) {
                     // 사용자가 현재 접속 중이면 실시간 전송
-                    if (onlineUserIds.contains(recipient.getUserId())) {
+                    //if (onlineUserIds.contains(recipient.getUserId())) {
                         SchedulerAlarmEntity alarm = SchedulerAlarmEntity.builder()
                                 .user(recipient)
                                 .calendar(schedule.getCalendar())
@@ -188,9 +204,9 @@ public class AlarmService {
                         schedulerAlarmRepository.save(alarm); // 알림 저장
 
                         sendAlarmToUser(recipient.getEmail(), alarm);
-                    }else{
-                        sendAlarm(recipient, schedule.getCalendar(), schedule, "event_started");
-                    }
+//                    }else{
+//                        sendAlarm(recipient, schedule.getCalendar(), schedule, "event_started");
+//                    }
                 }
             }
         } catch (Exception ex) {
@@ -261,6 +277,7 @@ public class AlarmService {
 
     @Transactional
     public void sendAlarm(UserEntity user, CalendarEntity calendar, ScheduleEntity schedule, String type) {
+
         SchedulerAlarmEntity alarm = SchedulerAlarmEntity.builder()
                 .user(user)
                 .calendar(calendar)

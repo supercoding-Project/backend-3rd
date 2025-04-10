@@ -8,6 +8,7 @@ import com.github.scheduler.chat.service.ChatService;
 import com.github.scheduler.global.config.chat.SocketSecurityInterceptor;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 
 import lombok.RequiredArgsConstructor;
@@ -16,11 +17,20 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
-@RequiredArgsConstructor
 public class ChatSocketController {
     private final ChatService chatService;
     private final SocketIOServer server;
     private final SocketSecurityInterceptor securityInterceptor;
+
+    public ChatSocketController(
+            ChatService chatService,
+            @Qualifier("socketIOServer") SocketIOServer server,
+            SocketSecurityInterceptor securityInterceptor) {
+        this.chatService = chatService;
+        this.server = server;
+        this.securityInterceptor = securityInterceptor;
+    }
+
 
     @PostConstruct
     public void init(){
