@@ -1,6 +1,7 @@
 package com.github.scheduler.alarm.service;
 
 
+import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.github.scheduler.alarm.dto.ResponseAlarmDto;
@@ -15,6 +16,7 @@ import com.github.scheduler.auth.repository.UserRepository;
 import com.github.scheduler.calendar.entity.CalendarEntity;
 import com.github.scheduler.calendar.entity.CalendarType;
 import com.github.scheduler.calendar.entity.UserCalendarEntity;
+import com.github.scheduler.chat.event.ChatRoomJoinEvent;
 import com.github.scheduler.global.exception.AppException;
 import com.github.scheduler.global.exception.ErrorCode;
 import com.github.scheduler.schedule.entity.RepeatType;
@@ -35,19 +37,30 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AlarmService {
 
     private final SchedulerAlarmRepository schedulerAlarmRepository;
     private final SchedulerInvitationAlarmRepository schedulerInvitationAlarmRepository;  // 초대 알림 리포지토리
-    private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
-    private final ApplicationEventPublisher eventPublisher;
     private final SocketIOServer socketIOServer;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public AlarmService(SchedulerAlarmRepository schedulerAlarmRepository
+            , SchedulerInvitationAlarmRepository schedulerInvitationAlarmRepository
+            , ScheduleRepository scheduleRepository
+            ,@Qualifier("alarmSocketServer") SocketIOServer socketIOServer
+            ,ApplicationEventPublisher eventPublisher) {
+        this.schedulerAlarmRepository = schedulerAlarmRepository;
+        this.schedulerInvitationAlarmRepository = schedulerInvitationAlarmRepository;
+        this.scheduleRepository = scheduleRepository;
+        this.socketIOServer = socketIOServer;
+        this.eventPublisher = eventPublisher;
+    }
 
     // 읽음처리
     @Transactional
@@ -110,17 +123,24 @@ public class AlarmService {
                 alarm.getSchedule().getTitle(),
                 alarm.getSchedule().getLocation(),
                 mentionCount,
-                alarm.getSchedule().getStartTime(),
+                alarm.getSchedule().getCreatedAt(),
                 alarm.isChecked()
         );
-
         for (SocketIOClient client : socketIOServer.getAllClients()) {
-            Long userId = userRepository.findByEmail(userEmail).get().getUserId();
-            Long connectedUserId = client.get("userId");  // 연결할 때 set한 값
-            if (userId.equals(connectedUserId)) {
-                client.sendEvent("receiveAlarm", alarmDto);  // 클라이언트로 이벤트 전송
-                log.info("알람 전송 완료 -> {}, {}", userId, alarmDto);
+            String connectedUserEmail = client.get("email");
+            if (userEmail.equals(connectedUserEmail)) {
+                sendAlarmToClient(client, alarmDto, null);  // 전용 핸들러 메서드 사용
             }
+        }
+    }
+
+    public void sendAlarmToClient(SocketIOClient client, ResponseAlarmDto alarmDto, AckRequest ackRequest) {
+        if (client != null && alarmDto != null) {
+//            client.sendEvent("receiveAlarm", ackRequest, alarmDto);
+            eventPublisher.publishEvent(new AlarmCreatedEvent(alarmDto,client));
+            log.info("클라이언트 알림 전송 완료 -> {}, {}", client.get("email"), alarmDto);
+        } else {
+            log.warn("알림 전송 실패: client 또는 alarmDto가 null");
         }
     }
 
@@ -156,16 +176,26 @@ public class AlarmService {
                     .build();
             schedulerInvitationAlarmRepository.save(invitationAlarm);
 
-            SchedulerAlarmDto invitationAlarmDto = new SchedulerAlarmDto(
+            int memberCount = (calendar == null || calendar.getUserCalendars().isEmpty()) ? 0 : calendar.getUserCalendars().size();
+
+            ResponseAlarmDto alarmDto = new ResponseAlarmDto(
                     invitationAlarm.getId(),
-                    user.getUserId(),
-                    calendar.getCalendarId(),
-                    null,
                     type,
+                    Objects.requireNonNull(calendar).getCalendarName(),
+                    null,
+                    null,
+                    memberCount,
+                    invitationAlarm.getCreatedAt(),
                     invitationAlarm.isChecked()
             );
             //messagingTemplate.convertAndSendToUser(user.getEmail(), "/queue/alarms", invitationAlarmDto);
-            log.info("초대 알림 저장 완료: id={} -> {}, {}", invitationAlarm.getId(), user.getEmail(), invitationAlarmDto);
+            for (SocketIOClient client : socketIOServer.getAllClients()) {
+                String connectedUserEmail = client.get("email");
+                if (user.getEmail().equals(connectedUserEmail)) {
+                    sendAlarmToClient(client, alarmDto, null);  // 전용 핸들러 메서드 사용
+                }
+            }
+            log.info("초대 알림 저장 완료: id={} -> {}, {}", invitationAlarm.getId(), user.getEmail(), alarmDto);
         } catch (Exception e) {
             log.error("초대 알림 저장 실패: {}", e.getMessage());
             throw new RuntimeException("초대 알림 저장 실패", e);  // RuntimeException으로 롤백 트리거

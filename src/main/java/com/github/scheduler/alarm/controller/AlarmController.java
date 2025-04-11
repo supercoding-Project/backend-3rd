@@ -55,7 +55,7 @@ public class AlarmController {
         // 연결,해제 이벤트 리스너
         server.addConnectListener(securityInterceptor);
         // 메시지 이벤트 리스너
-        //server.addEventListener("sendAlarm", ResponseAlarmDto.class , alarmService::sendAlarmToUser);
+        server.addEventListener("sendAlarm", ResponseAlarmDto.class , alarmService::sendAlarmToClient);
     }
 
     @PreDestroy

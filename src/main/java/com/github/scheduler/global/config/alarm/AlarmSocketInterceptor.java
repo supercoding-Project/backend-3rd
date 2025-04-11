@@ -39,7 +39,9 @@ public class AlarmSocketInterceptor implements ConnectListener {
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
+        log.info("[알림 소켓] 인증된 사용자: {}", authentication.getName());
 
-        log.info("Client authenticated: {}", authentication.getName());
+        String email = jwtTokenProvider.getEmailByToken(token);
+        client.set("email", email);
     }
 }
