@@ -66,7 +66,7 @@ public class AlarmController {
 
     @PatchMapping("/{alarmId}")
     @Operation(summary = "알림 읽음", description = "알림을 읽음처리합니다.")
-    public ResponseEntity<ApiResponse<SchedulerAlarmDto>> markAlarmAsRead(
+    public ResponseEntity<ApiResponse<ResponseAlarmDto>> markAlarmAsRead(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             @PathVariable Long alarmId,
             @RequestParam String alarmType
@@ -87,14 +87,14 @@ public class AlarmController {
 
     @Operation(summary = "알림 전체조회", description = "읽지않은 알림을 전체조회합니다.")
     @GetMapping("/unread")
-    public ResponseEntity<ApiResponse<List<SchedulerAlarmDto>>> getUnreadAlarms(
+    public ResponseEntity<ApiResponse<List<ResponseAlarmDto>>> getUnreadAlarms(
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         if (customUserDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.fail(ErrorCode.UNAUTHORIZED_ACCESS));
         }
         Long userId = customUserDetails.getUserEntity().getUserId();
-        List<SchedulerAlarmDto> unreadAlarms = alarmService.getUnreadAlarms(userId);
+        List<ResponseAlarmDto> unreadAlarms = alarmService.getUnreadAlarms(userId);
         return ResponseEntity.ok(ApiResponse.success(unreadAlarms));
     }
 }
