@@ -1,12 +1,8 @@
-package com.github.scheduler.global.config.chat;
+package com.github.scheduler.global.config.alarm;
 
-import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
-import com.corundumstudio.socketio.listener.DataListener;
-import com.corundumstudio.socketio.protocol.Event;
-import com.github.scheduler.chat.dto.ChatRoomCreate;
 import com.github.scheduler.global.config.auth.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,15 +15,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SocketSecurityInterceptor implements ConnectListener{
+public class AlarmSocketInterceptor implements ConnectListener {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-//    @Qualifier("socketIOServer")
+//    @Qualifier("alarmSocketServer")
 //    private final SocketIOServer server;
 
     @Override
     public void onConnect(SocketIOClient client) {
+        // alarm 인증 처리 로직
         String token = client.getHandshakeData().getSingleUrlParam("token");
 
         if (token == null || !jwtTokenProvider.validateToken(token)) {
@@ -42,9 +39,9 @@ public class SocketSecurityInterceptor implements ConnectListener{
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
+        log.info("[알림 소켓] 인증된 사용자: {}", authentication.getName());
 
-        log.info("Client authenticated: {}", authentication.getName());
+        String email = jwtTokenProvider.getEmailByToken(token);
+        client.set("email", email);
     }
-
-
 }
