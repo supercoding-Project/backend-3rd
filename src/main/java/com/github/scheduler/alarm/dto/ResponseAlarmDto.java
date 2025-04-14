@@ -28,6 +28,8 @@ public class ResponseAlarmDto {
     private LocalDateTime eventTime;
     private boolean read;
 
+
+
     @Override
     public String toString() {
         return "ResponseAlarmDto{" +

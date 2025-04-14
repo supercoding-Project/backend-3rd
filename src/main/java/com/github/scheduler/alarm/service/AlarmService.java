@@ -64,21 +64,24 @@ public class AlarmService {
 
     // 읽음처리
     @Transactional
-    public SchedulerAlarmDto markAlarmAsRead(Long userId, Long alarmId, String alarmType) {
+    public ResponseAlarmDto markAlarmAsRead(Long userId, Long alarmId, String alarmType) {
         if ("schedule".equalsIgnoreCase(alarmType)) {
             SchedulerAlarmEntity alarm = schedulerAlarmRepository.findById(alarmId)
                     .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_ALARM, ErrorCode.NOT_FOUND_ALARM.getMessage()));
             validateUserAccess(userId, alarm.getUser().getUserId());
             alarm.setChecked(true);
             schedulerAlarmRepository.save(alarm);
-            return new SchedulerAlarmDto(alarm.getId(), alarm.getUser().getUserId(), alarm.getCalendar().getCalendarId(), alarm.getSchedule().getScheduleId(),alarm.getType(), alarm.isChecked());
+            int mentionCount = alarm.getSchedule().getMentions() != null
+                    ? alarm.getSchedule().getMentions().size()
+                    : 0;
+            return new ResponseAlarmDto(alarm.getId(), alarm.getType(),  alarm.getCalendar().getCalendarName(), alarm.getSchedule().getTitle(), alarm.getSchedule().getLocation(), mentionCount, alarm.getCreatedAt(), alarm.isChecked());
         } else if ("invitation".equalsIgnoreCase(alarmType)) {
             SchedulerInvitationAlarmEntity invitationAlarm = schedulerInvitationAlarmRepository.findById(alarmId)
                     .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND_INVITE_ALARM, ErrorCode.NOT_FOUND_INVITE_ALARM.getMessage()));
             validateUserAccess(userId, invitationAlarm.getUser().getUserId());
             invitationAlarm.setChecked(true);
             schedulerInvitationAlarmRepository.save(invitationAlarm);
-            return new SchedulerAlarmDto(invitationAlarm.getId(), invitationAlarm.getUser().getUserId(),invitationAlarm.getCalendar().getCalendarId(),  null, invitationAlarm.getType(), invitationAlarm.isChecked());
+            return new ResponseAlarmDto(invitationAlarm.getId(), invitationAlarm.getType(),  invitationAlarm.getCalendar().getCalendarName(), null, null, 0, invitationAlarm.getCreatedAt(), invitationAlarm.isChecked());
         } else {
             throw new AppException(ErrorCode.CHECK_TYPE, ErrorCode.CHECK_TYPE.getMessage());
         }
@@ -92,20 +95,38 @@ public class AlarmService {
 
     // 읽지않은 알림 전체 조회
     @Transactional
-    public List<SchedulerAlarmDto> getUnreadAlarms(Long userId) {
+    public List<ResponseAlarmDto> getUnreadAlarms(Long userId) {
         List<SchedulerAlarmEntity> unreadAlarms = schedulerAlarmRepository.findByUser_UserIdAndIsCheckedFalse(userId);
         List<SchedulerInvitationAlarmEntity> unreadInvitationAlarms = schedulerInvitationAlarmRepository.findByUser_UserIdAndIsCheckedFalse(userId);
 
-        List<SchedulerAlarmDto> alarmDtos = new ArrayList<>();
+        List<ResponseAlarmDto> alarmDtos = new ArrayList<>();
         unreadAlarms.forEach(alarm ->
-                alarmDtos.add(new SchedulerAlarmDto(
-                        alarm.getId(), alarm.getUser().getUserId(), alarm.getCalendar().getCalendarId(), alarm.getSchedule().getScheduleId() ,
-                        alarm.getType(), alarm.isChecked()
-                ))
+                {
+                    int mentionCount = (alarm.getSchedule().getMentions() != null)
+                            ? alarm.getSchedule().getMentions().size()
+                            : 0;
+                    alarmDtos.add(new ResponseAlarmDto(
+                            alarm.getId(),
+                            alarm.getType(),
+                            alarm.getCalendar().getCalendarName(),
+                            alarm.getSchedule().getTitle(),
+                            alarm.getSchedule().getLocation(),
+                            mentionCount,
+                            alarm.getCreatedAt(),
+                            alarm.isChecked()
+                    ));
+                }
         );
         unreadInvitationAlarms.forEach(inviteAlarm ->
-                alarmDtos.add(new SchedulerAlarmDto(
-                        inviteAlarm.getId(), inviteAlarm.getUser().getUserId(), inviteAlarm.getCalendar().getCalendarId(), null, inviteAlarm.getType(), inviteAlarm.isChecked()
+                alarmDtos.add(new ResponseAlarmDto(
+                        inviteAlarm.getId(),
+                        inviteAlarm.getType(),
+                        inviteAlarm.getCalendar().getCalendarName(),
+                        null,
+                        null,
+                        0,
+                        inviteAlarm.getCreatedAt(),
+                        inviteAlarm.isChecked()
                 ))
         );
         return alarmDtos;
