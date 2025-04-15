@@ -3,8 +3,9 @@ server:
 
 socket:
     server:
-        host: 0.0.0.0
         port: 9092
+    alarm:
+        port: 9093
 
 spring:
     jwt:
