@@ -13,4 +13,6 @@ import java.util.List;
 public interface SchedulerInvitationAlarmRepository extends JpaRepository<SchedulerInvitationAlarmEntity, Long> {
 
     List<SchedulerInvitationAlarmEntity> findByUser_UserIdAndIsCheckedFalse(Long userId);
+
+    List<SchedulerInvitationAlarmEntity> findUnreadAlarmsByUser_UserId(Long userId);
 }

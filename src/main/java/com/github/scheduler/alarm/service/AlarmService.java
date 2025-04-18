@@ -87,6 +87,49 @@ public class AlarmService {
         }
     }
 
+    @Transactional
+    public List<ResponseAlarmDto> markAllAlarmsAsRead(Long userId) {
+        List<ResponseAlarmDto> responseAlarms = new ArrayList<>();
+
+        // 안 읽은 스케줄 알림 전부 가져와서 읽음 처리
+        List<SchedulerAlarmEntity> scheduleAlarms = schedulerAlarmRepository.findUnreadAlarmsByUser_UserId(userId);
+        for (SchedulerAlarmEntity alarm : scheduleAlarms) {
+            alarm.setChecked(true);
+            schedulerAlarmRepository.save(alarm);
+            responseAlarms.add(new ResponseAlarmDto(
+                    alarm.getId(),
+                    alarm.getType(),
+                    alarm.getCalendar().getCalendarName(),
+                    alarm.getSchedule().getTitle(),
+                    alarm.getSchedule().getLocation(),
+                    alarm.getSchedule().getMentions() != null ? alarm.getSchedule().getMentions().size() : 0,
+                    alarm.getCreatedAt(),
+                    alarm.isChecked()
+            ));
+        }
+
+        // 안 읽은 초대 알림 전부 가져와서 읽음 처리
+        List<SchedulerInvitationAlarmEntity> invitationAlarms = schedulerInvitationAlarmRepository.findUnreadAlarmsByUser_UserId(userId);
+        for (SchedulerInvitationAlarmEntity alarm : invitationAlarms) {
+            alarm.setChecked(true);
+            schedulerInvitationAlarmRepository.save(alarm);
+            responseAlarms.add(new ResponseAlarmDto(
+                    alarm.getId(),
+                    alarm.getType(),
+                    alarm.getCalendar().getCalendarName(),
+                    null,
+                    null,
+                    0,
+                    alarm.getCreatedAt(),
+                    alarm.isChecked()
+            ));
+        }
+
+        return responseAlarms;
+    }
+
+
+
     private void validateUserAccess(Long requestUserId, Long alarmOwnerId) {
         if (!requestUserId.equals(alarmOwnerId)) {
             throw new AppException(ErrorCode.CANNOT_READ, ErrorCode.CANNOT_READ.getMessage());
@@ -144,7 +187,7 @@ public class AlarmService {
                 alarm.getSchedule().getTitle(),
                 alarm.getSchedule().getLocation(),
                 mentionCount,
-                alarm.getSchedule().getCreatedAt(),
+                alarm.getCreatedAt(),
                 alarm.isChecked()
         );
         for (SocketIOClient client : socketIOServer.getAllClients()) {
@@ -341,4 +384,5 @@ public class AlarmService {
         schedulerAlarmRepository.save(alarm);
         sendAlarmToUser(user.getEmail(), alarm);
     }
+
 }
