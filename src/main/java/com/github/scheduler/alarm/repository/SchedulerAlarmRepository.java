@@ -19,4 +19,5 @@ public interface SchedulerAlarmRepository extends JpaRepository<SchedulerAlarmEn
     //List<UserCalendarEntity> findByUserEntity(UserEntity userEntity);
     List<SchedulerAlarmEntity> findByUser_UserIdAndIsCheckedFalse(Long userId);
 
+    List<SchedulerAlarmEntity> findUnreadAlarmsByUser_UserId(Long userId);
 }
