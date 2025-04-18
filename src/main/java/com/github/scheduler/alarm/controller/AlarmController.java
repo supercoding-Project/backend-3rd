@@ -64,7 +64,7 @@ public class AlarmController {
 
     }
 
-    @PatchMapping("/{alarmId}")
+    @PutMapping("/{alarmId}")
     @Operation(summary = "알림 읽음", description = "알림을 읽음처리합니다.")
     public ResponseEntity<ApiResponse<ResponseAlarmDto>> markAlarmAsRead(
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
@@ -98,7 +98,7 @@ public class AlarmController {
         return ResponseEntity.ok(ApiResponse.success(unreadAlarms));
     }
 
-    @PatchMapping("/all")
+    @PutMapping("/all")
     @Operation(summary = "알림 전체 읽음 처리", description = "사용자의 모든 읽지 않은 알림을 읽음 처리합니다.")
     public ResponseEntity<ApiResponse<List<ResponseAlarmDto>>> markAllAlarmsAsRead(
             @AuthenticationPrincipal CustomUserDetails customUserDetails
