@@ -62,6 +62,17 @@ public class AlarmService {
         this.eventPublisher = eventPublisher;
     }
 
+    //읽지않은 알림 전체 갯수
+    public Long alarmCount(Long userId) {
+        long count = 0L;
+        count += schedulerAlarmRepository.countUnreadAlarmsByUser_UserId(userId) == null
+                ? 0L : schedulerAlarmRepository.countUnreadAlarmsByUser_UserId(userId);
+        count += schedulerInvitationAlarmRepository.countUnreadAlarmsByUser_UserId(userId) == null
+                ? 0L : schedulerInvitationAlarmRepository.countUnreadAlarmsByUser_UserId(userId);
+
+        return count;
+    }
+
     // 읽음처리
     @Transactional
     public ResponseAlarmDto markAlarmAsRead(Long userId, Long alarmId, String alarmType) {

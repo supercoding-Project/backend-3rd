@@ -112,4 +112,18 @@ public class AlarmController {
         List<ResponseAlarmDto> updatedAlarms = alarmService.markAllAlarmsAsRead(userId);
         return ResponseEntity.ok(ApiResponse.success(updatedAlarms));
     }
+
+
+    @GetMapping
+    @Operation(summary = "읽지않은 알림 개수", description = "읽지않은 알림의 전체 개수를 조회한다.")
+    public ResponseEntity<ApiResponse<Long>> alarmCount(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        if (customUserDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail(ErrorCode.UNAUTHORIZED_ACCESS));
+        }
+        Long userId = customUserDetails.getUserEntity().getUserId();
+        long alarmCount = alarmService.alarmCount(userId);
+        return ResponseEntity.ok(ApiResponse.success(alarmCount));
+    }
+
 }
