@@ -65,10 +65,10 @@ public class AlarmService {
     //읽지않은 알림 전체 갯수
     public Long alarmCount(Long userId) {
         long count = 0L;
-        count += schedulerAlarmRepository.countUnreadAlarmsByUser_UserId(userId) == null
-                ? 0L : schedulerAlarmRepository.countUnreadAlarmsByUser_UserId(userId);
-        count += schedulerInvitationAlarmRepository.countUnreadAlarmsByUser_UserId(userId) == null
-                ? 0L : schedulerInvitationAlarmRepository.countUnreadAlarmsByUser_UserId(userId);
+        count += schedulerAlarmRepository.countByUser_UserIdAndIsCheckedFalse(userId) == null
+                ? 0L : schedulerAlarmRepository.countByUser_UserIdAndIsCheckedFalse(userId);
+        count += schedulerInvitationAlarmRepository.countByUser_UserIdAndIsCheckedFalse(userId) == null
+                ? 0L : schedulerInvitationAlarmRepository.countByUser_UserIdAndIsCheckedFalse(userId);
 
         return count;
     }
@@ -103,7 +103,7 @@ public class AlarmService {
         List<ResponseAlarmDto> responseAlarms = new ArrayList<>();
 
         // 안 읽은 스케줄 알림 전부 가져와서 읽음 처리
-        List<SchedulerAlarmEntity> scheduleAlarms = schedulerAlarmRepository.findUnreadAlarmsByUser_UserId(userId);
+        List<SchedulerAlarmEntity> scheduleAlarms = schedulerAlarmRepository.findByUser_UserIdAndIsCheckedFalse(userId);
         for (SchedulerAlarmEntity alarm : scheduleAlarms) {
             alarm.setChecked(true);
             schedulerAlarmRepository.save(alarm);
@@ -120,7 +120,7 @@ public class AlarmService {
         }
 
         // 안 읽은 초대 알림 전부 가져와서 읽음 처리
-        List<SchedulerInvitationAlarmEntity> invitationAlarms = schedulerInvitationAlarmRepository.findUnreadAlarmsByUser_UserId(userId);
+        List<SchedulerInvitationAlarmEntity> invitationAlarms = schedulerInvitationAlarmRepository.findByUser_UserIdAndIsCheckedFalse(userId);
         for (SchedulerInvitationAlarmEntity alarm : invitationAlarms) {
             alarm.setChecked(true);
             schedulerInvitationAlarmRepository.save(alarm);
