@@ -1,6 +1,7 @@
 package com.github.scheduler.global.config.auth;
 import com.github.scheduler.global.config.auth.custom.CustomUserDetailsServiceImpl;
 import io.jsonwebtoken.*;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,13 @@ public class JwtTokenProvider {
 
     @Value("${spring.jwt.token.refresh-expiration-time}")
     private Long refreshExpirationTime;
+
+    @PostConstruct
+    public void checkConfig() {
+        log.info("jwtSecret = {}", jwtSecret);
+        log.info("accessExpirationTime = {}", accessExpirationTime);
+        log.info("refreshExpirationTime = {}", refreshExpirationTime);
+    }
 
 
     // 토큰 생성

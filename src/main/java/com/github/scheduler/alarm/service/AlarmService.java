@@ -387,7 +387,8 @@ public class AlarmService {
                 .user(user)
                 .calendar(calendar)
                 .schedule(schedule)
-                .isChecked(false)
+
+           .isChecked(false)
                 .type(type)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())

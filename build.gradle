@@ -85,7 +85,8 @@ dependencies {
 
 	// localDateTime
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-
+	
+	//implementation 'org.hibernate.orm:hibernate-core:6.1.7.Final'
 	//spring retry
 	implementation 'org.springframework.retry:spring-retry:1.3.3'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
