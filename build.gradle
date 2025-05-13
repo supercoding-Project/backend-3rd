@@ -24,6 +24,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'mysql:mysql-connector-java:8.0.33'
 
 	// validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -71,11 +72,11 @@ dependencies {
 	implementation 'com.corundumstudio.socketio:netty-socketio:2.0.3'
 	//implementation 'io.github.ozzyozbourne:spring-boot-starter-socket.io'
 
-    // e-mail
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
+	// e-mail
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-    // redis
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	// Websoket
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
@@ -85,11 +86,12 @@ dependencies {
 
 	// localDateTime
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-	
-	//implementation 'org.hibernate.orm:hibernate-core:6.1.7.Final'
+
 	//spring retry
 	implementation 'org.springframework.retry:spring-retry:1.3.3'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+	implementation 'io.github.cdimascio:dotenv-java:2.2.0'
 
 }
 
