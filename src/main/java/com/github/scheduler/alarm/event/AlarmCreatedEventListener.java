@@ -5,12 +5,14 @@ import com.github.scheduler.alarm.dto.ResponseAlarmDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
 public class AlarmCreatedEventListener {
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleAlarmCreated(AlarmCreatedEvent event) {
         SocketIOClient client = event.getSocketIOClient();
         ResponseAlarmDto alarmDto = event.getAlarmData();

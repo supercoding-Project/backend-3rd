@@ -3,11 +3,13 @@ package com.github.scheduler.schedule.repository;
 import com.github.scheduler.admin.repository.ScheduleRepositoryCustom;
 import com.github.scheduler.auth.entity.UserEntity;
 import com.github.scheduler.calendar.entity.CalendarEntity;
+import com.github.scheduler.schedule.entity.RepeatType;
 import com.github.scheduler.schedule.entity.ScheduleEntity;
 import com.github.scheduler.schedule.entity.ScheduleStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,4 +27,7 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
 
     List<ScheduleEntity> findByCreateUserIdAndScheduleStatusNot(UserEntity createUserId, ScheduleStatus scheduleStatus);
 
+    List<ScheduleEntity> findByRepeatTypeAndStartTimeBetween(RepeatType repeatType, LocalDateTime oneMinuteBefore, LocalDateTime oneMinuteAfter);
+
+    List<ScheduleEntity> findByRepeatTypeNotAndRepeatEndDateGreaterThanEqual(RepeatType repeatType, LocalDate localDate);
 }

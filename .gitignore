@@ -46,3 +46,5 @@ src/main/resources/static/uploads/profiles/
 
 ## logs 파일
 logs/
+
+.env
