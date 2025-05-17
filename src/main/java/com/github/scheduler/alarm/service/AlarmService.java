@@ -32,6 +32,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -267,7 +269,12 @@ public class AlarmService {
             for (SocketIOClient client : socketIOServer.getAllClients()) {
                 String connectedUserEmail = client.get("email");
                 if (user.getEmail().equals(connectedUserEmail)) {
-                    sendAlarmToClient(client, alarmDto, null);  // 전용 핸들러 메서드 사용
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                        @Override
+                        public void afterCommit() {
+                            sendAlarmToClient(client, alarmDto, null);  // 전용 핸들러 메서드 사용
+                        }
+                    });
                 }
             }
             log.info("초대 알림 저장 완료: id={} -> {}, {}", invitationAlarm.getId(), user.getEmail(), alarmDto);
@@ -283,35 +290,49 @@ public class AlarmService {
         try {
            // Set<Long> onlineUserIds = sessionManager.getConnectedUsers(); // 접속된 사용자들
             LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
-
+            LocalDateTime oneMinuteBefore = now.minusMinutes(1);
+            LocalDateTime oneMinuteAfter = now.plusMinutes(1);
             log.info("현재 시간: {}", now);
 
-            List<ScheduleEntity> schedules = scheduleRepository.findAll();
-            for (ScheduleEntity schedule : schedules) {
-                if (!isScheduleMatching(schedule, now) || isDuplicateAlarm(schedule, now)) {
-                    continue;
+            //List<ScheduleEntity> schedules = scheduleRepository.findAll();
+
+            List<ScheduleEntity> oneTimeSchedules =
+                    scheduleRepository.findByRepeatTypeAndStartTimeBetween(RepeatType.NONE, oneMinuteBefore, oneMinuteAfter);
+
+            List<ScheduleEntity> repeatingSchedules =
+                    scheduleRepository.findByRepeatTypeNotAndRepeatEndDateGreaterThanEqual(RepeatType.NONE, now.toLocalDate());
+
+            List<ScheduleEntity> allToNotify = new ArrayList<>();
+
+            allToNotify.addAll(oneTimeSchedules);
+
+            for (ScheduleEntity schedule : repeatingSchedules) {
+                if (isScheduleMatching(schedule, now) && !isDuplicateAlarm(schedule, now)) {
+                    allToNotify.add(schedule);
                 }
+            }
 
+            // 알림 전송
+            for (ScheduleEntity schedule : allToNotify) {
                 List<UserEntity> recipients = getRecipients(schedule);
-                for (UserEntity recipient : recipients) {
-                    // 사용자가 현재 접속 중이면 실시간 전송
-                    //if (onlineUserIds.contains(recipient.getUserId())) {
-                        SchedulerAlarmEntity alarm = SchedulerAlarmEntity.builder()
-                                .user(recipient)
-                                .calendar(schedule.getCalendar())
-                                .schedule(schedule)
-                                .type("event_started")
-                                .isChecked(false)
-                                .createdAt(LocalDateTime.now())
-                                .updatedAt(LocalDateTime.now())
-                                .build();
+                for (UserEntity user : recipients) {
+                    SchedulerAlarmEntity alarm = SchedulerAlarmEntity.builder()
+                            .user(user)
+                            .calendar(schedule.getCalendar())
+                            .schedule(schedule)
+                            .type("event_started")
+                            .isChecked(false)
+                            .createdAt(LocalDateTime.now())
+                            .updatedAt(LocalDateTime.now())
+                            .build();
 
-                        schedulerAlarmRepository.save(alarm); // 알림 저장
-
-                        sendAlarmToUser(recipient.getEmail(), alarm);
-//                    }else{
-//                        sendAlarm(recipient, schedule.getCalendar(), schedule, "event_started");
-//                    }
+                    schedulerAlarmRepository.save(alarm);
+                    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                        @Override
+                        public void afterCommit() {
+                            sendAlarmToUser(user.getEmail(), alarm);
+                        }
+                    });
                 }
             }
         } catch (Exception ex) {
@@ -393,7 +414,12 @@ public class AlarmService {
                 .updatedAt(LocalDateTime.now())
                 .build();
         schedulerAlarmRepository.save(alarm);
-        sendAlarmToUser(user.getEmail(), alarm);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+            @Override
+            public void afterCommit() {
+                sendAlarmToUser(user.getEmail(), alarm);
+            }
+        });
     }
 
 }
